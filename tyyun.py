@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -- coding: utf-8 --
 # @Time : 2023/4/8 9:23
-#作者：https://www.52pojie.cn/thread-1231190-1-1.html
+#作者：https://www.52pojie.cn/forum.php?mod=viewthread&tid=1784111&highlight=%C7%A9%B5%BD
 # -------------------------------
 # cron "30 4 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('天翼云盘签到');
