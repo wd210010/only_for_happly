@@ -55,4 +55,4 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 
 ### Star History
 
-[![Stargazers over time](https://starchart.cc/wd210010/only_for_happly.svg)](https://starchart.cc/wd210010/only_for_happly)
+[![Stargazers over time](https://starchart.cc/wd210010/only_for_happly.svg)](https://starchart.cc/wd210010/only_for_happly) 
