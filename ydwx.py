@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# -- coding: utf-8 --
+# -- coding: utf-8 -- 
 # -------------------------------
 # @Author : github@wd210010 https://github.com/wd210010/just_for_happy
 # @Time : 2023/2/27 13:23
