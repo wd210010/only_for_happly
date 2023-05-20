@@ -14,7 +14,7 @@ from datetime import datetime
 # 青龙变量 zdm_cookie zdm_active_id
 zdm_cookie = os.getenv("zdm_cookie").split('&')
 
-zdm_active_id=['ljX8qVlEA7','A6X1veWE2O','enV1m6og5a','zpr8NPB1wo']
+zdm_active_id=['ljX8qVlEA7','A6X1veWE2O','PmR8xrY1wy','zpr8NPB1wo']
 Current_date = str(datetime. now(). date())[:7]
 
 for i in range(len(zdm_cookie)):
