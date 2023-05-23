@@ -149,7 +149,7 @@ if __name__ =='__main__':#line:245
                         shop_id =get_shop_item (sessionId ,itemCode ,device_id ,token ,province ,city )#line:279
                         res =mt_add (itemCode ,str (shop_id ),sessionId ,user_id ,token ,device_id )#line:281
                         s +=itemCode +'_'+name +'---------------'+res +'\n'#line:283
-                if not ck :#line:284
+                if ck :#line:284
                     r =getUserEnergyAward (device_id ,ck )#line:285
                     s +=userName +'_'+mobile +'---------------'+"小茅运:"+r +'\n'#line:287
                 s +=userName +'_'+mobile +"正常结束任务"+'\n              \n'#line:288
