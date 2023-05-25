@@ -94,7 +94,7 @@ def main(usr,psd):
                 renew_domains_failed.append(domain)
 
     # 输出结果并推送通知
-    print(domains_list, renew_domains_succeed, renew_domains_failed)
+    print((str(domains_list)+ '\n' + str(renew_domains_succeed) + '\n' + str(renew_domains_failed)).replace('[','').replace(']',''))
 
 if __name__ == '__main__':
     usrs = os.getenv("freenom_usr").split('&')
