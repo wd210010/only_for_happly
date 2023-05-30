@@ -46,7 +46,9 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 
 ### 东东挂机上车
 
-地址：http://jdflxfd.tk 
+地址1：http://krystal008.eu.org 
+
+地址2：http://jdflxfd.tk 
 
 
 ### 赞赏码
