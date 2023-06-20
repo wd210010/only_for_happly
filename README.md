@@ -33,7 +33,7 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 
 ### 部署的其他大佬的签到站
 
-签到站地址：http://krystal033.tk/my/ （一个设备打开网址 另外一个设备用狗东app扫码登录获取cookie成功就登录了）
+签到站地址：http://krystal033.tk/my/ 
 大佬项目地址： https://github.com/qiandao-today/qiandao
 
 
@@ -46,8 +46,7 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 
 ### 东东挂机上车
 
-地址1：http://krystal008.eu.org （获取cookie成功就登录了）
-
+地址1：http://krystal008.eu.org （一个设备打开网址 另外一个设备用狗东app扫码登录获取cookie成功就登录了）
 地址2：http://jdflxfd.tk 
 
 
