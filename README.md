@@ -33,7 +33,7 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 
 ### 部署的其他大佬的签到站
 
-签到站地址：http://krystal033.tk/my/ 
+签到站地址：http://141.147.178.177:8923/ (原http://krystal033.tk/my/)
 大佬项目地址： https://github.com/qiandao-today/qiandao
 
 
