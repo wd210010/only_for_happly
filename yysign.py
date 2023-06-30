@@ -8,7 +8,7 @@
 import json,requests,os
 
 
-##变量雨云账号密码
+##变量雨云账号密码 注册地址https://www.rainyun.com/NTY1NzY=_
 yyusername=os.getenv("yyusername")
 yypassword=os.getenv("yypassword")
 
