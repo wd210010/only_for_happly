@@ -5,7 +5,7 @@
 # cron "0 0 6,8,20 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('雨云签到');
 
-import json,requests,os
+import json,requests,os,time
 
 
 ##变量雨云账号密码 注册地址https://www.rainyun.com/NTY1NzY=_
@@ -31,9 +31,12 @@ def login_sign():
     }
     resp = session.post('https://api.v2.rainyun.com/user/reward/tasks',headers=headers,data=json.dumps({"task_name": "每日签到","verifyCode": ""}))
     print('开始签到：签到结果 '+json.loads(resp.text)['message'])
-
-    respget = session.post('https://api.v2.rainyun.com/user/reward/items',headers=headers,data='{"item_id":107}')
-    print('尝试兑换云服务器 '+json.loads(respget.text)['message'])
+    
+    print('尝试20次服务器兑换！')
+    for i in range(20):
+        respget = session.post('https://api.v2.rainyun.com/user/reward/items',headers=headers,data='{"item_id":107}')
+        print(f'第{i+1}次尝试兑换云服务器 '+json.loads(respget.text)['message'])
+        time.sleep(5)
 
 
 if __name__ == '__main__':
