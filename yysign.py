@@ -2,7 +2,7 @@
 # -- coding: utf-8 --
 # @Time : 2023/6/30 10:23
 # -------------------------------
-# cron "30 6,8 * * *" script-path=xxx.py,tag=匹配cron用
+# cron "0 0 6,8,20 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('雨云签到');
 
 import json,requests,os
@@ -30,7 +30,11 @@ def login_sign():
         'x-csrf-token': x_csrf_token,
     }
     resp = session.post('https://api.v2.rainyun.com/user/reward/tasks',headers=headers,data=json.dumps({"task_name": "每日签到","verifyCode": ""}))
-    print(json.loads(resp.text)['message'])
+    print('开始签到：签到结果 '+json.loads(resp.text)['message'])
+
+    respget = session.post('https://api.v2.rainyun.com/user/reward/items',headers=headers,data='{"item_id":107}')
+    print('尝试兑换云服务器 '+json.loads(respget.text)['message'])
+
 
 if __name__ == '__main__':
     login_sign()
