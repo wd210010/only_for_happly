@@ -30,7 +30,7 @@ def login_sign():
         'x-csrf-token': x_csrf_token,
     }
     resp = session.post('https://api.v2.rainyun.com/user/reward/tasks',headers=headers,data=json.dumps({"task_name": "每日签到","verifyCode": ""}))
-    print('开始签到：签到结果 '+json.loads(resp.text)['message'])
+    print('开始签到：签到结果 '+json.loads(resp.text))
     
     print('尝试20次服务器兑换！')
     for i in range(20):
