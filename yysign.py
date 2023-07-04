@@ -13,32 +13,26 @@ yyusername=os.getenv("yyusername")
 yypassword=os.getenv("yypassword")
 
 
-#登录
-def login_sign():
-    session = requests.session()
-    resp1 = session.post('https://api.v2.rainyun.com/user/login',headers={"Content-Type": "application/json"}, data=json.dumps({"field": f"{yyusername}", "password": f"{yypassword}"}))
-    if resp1.text.find("200") > -1:
-        print("登录成功")
-        x_csrf_token = resp1.cookies.get_dict()['X-CSRF-Token']
-        # print(x_csrf_token)
-    else:
-        print(f"登录失败，响应信息：{resp1.text}")
-
-
-
-    headers= {
-        'x-csrf-token': x_csrf_token,
-    }
-    resp = session.post('https://api.v2.rainyun.com/user/reward/tasks',headers=headers,data=json.dumps({"task_name": "每日签到","verifyCode": ""}))
-    print('开始签到：签到结果 '+json.loads(resp.text))
-    
-    print('尝试20次服务器兑换！')
-    for i in range(20):
-        respget = session.post('https://api.v2.rainyun.com/user/reward/items',headers=headers,data='{"item_id":107}')
-        print(f'第{i+1}次尝试兑换云服务器 '+json.loads(respget.text)['message'])
-        time.sleep(5)
-
-
-if __name__ == '__main__':
-    login_sign()
-
+import json ,requests ,os ,time #line:8
+yyusername =os .getenv ("yyusername")#line:12
+yypassword =os .getenv ("yypassword")#line:13
+def login_sign ():#line:17
+    O00OOO00O0OO0OO00 =requests .session ()#line:18
+    OOOO000000000O0O0 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/login',headers ={"Content-Type":"application/json"},data =json .dumps ({"field":f"{yyusername}","password":f"{yypassword}"}))#line:19
+    if OOOO000000000O0O0 .text .find ("200")>-1 :#line:20
+        print ("登录成功")#line:21
+        O000OOOOO000OOO0O =OOOO000000000O0O0 .cookies .get_dict ()['X-CSRF-Token']#line:22
+    else :#line:24
+        print (f"登录失败，响应信息：{OOOO000000000O0O0.text}")#line:25
+    O000O0OOOO00OOOOO ={'x-csrf-token':O000OOOOO000OOO0O ,}#line:31
+    O0O0O000OOOO0OOO0 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/reward/tasks',headers =O000O0OOOO00OOOOO ,data =json .dumps ({"task_name":"每日签到","verifyCode":""}))#line:32
+    print ('开始签到：签到结果 '+O0O0O000OOOO0OOO0 .text )#line:33
+    print ('尝试20次服务器兑换！')#line:35
+    for OO00000OO0OO0000O in range (20 ):#line:36
+        OOOO00OO000O0O000 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/reward/items',headers =O000O0OOOO00OOOOO ,data ='{"item_id":107}')#line:37
+        OOO0O0OO0O000O0O0 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/reward/items',headers =O000O0OOOO00OOOOO ,data ='{"item_id":106}')#line:38
+        print (f'第{OO00000OO0OO0000O+1}次尝试兑换云服务器 '+json .loads (OOOO00OO000O0O000 .text )['message'])#line:39
+        print (f'第{OO00000OO0OO0000O+1}次尝试兑换云服务器 '+json .loads (OOO0O0OO0O000O0O0 .text )['message'])#line:40
+        time .sleep (5 )#line:41
+if __name__ =='__main__':#line:44
+    login_sign ()#line:45
