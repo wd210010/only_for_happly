@@ -100,4 +100,4 @@ for i in range(len(needhelplist)):
 
         resp_zl = requests.get(f'https://qiehuang-apig.xiaoyisz.com/qiehuangsecond/ga/friend-help/help?userId={needhelplist[i]}&type=0',headers=headers)
         result_zl = json.loads(resp_zl.text)
-        print(result_zl)
+        print(result_zl['message'].replace('\n\n\n',' '))
