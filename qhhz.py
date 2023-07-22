@@ -97,7 +97,10 @@ for i in range(len(needhelplist)):
             'Referer': 'https://thekingoftomato.ioutu.cn/',
             'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
         }
-
-        resp_zl = requests.get(f'https://qiehuang-apig.xiaoyisz.com/qiehuangsecond/ga/friend-help/help?userId={needhelplist[i]}&type=0',headers=headers)
-        result_zl = json.loads(resp_zl.text)
-        print(result_zl['message'].replace('\n\n\n',' '))
+        try:
+            resp_zl = requests.get(f'https://qiehuang-apig.xiaoyisz.com/qiehuangsecond/ga/friend-help/help?userId={needhelplist[i]}&type=0',headers=headers)
+            result_zl = json.loads(resp_zl.text)
+            print(result_zl['message'].replace('\n\n\n',' '))
+        except:
+            print('助力失败！检查助力账号格式是否正确！')
+           
