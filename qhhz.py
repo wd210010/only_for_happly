@@ -11,7 +11,7 @@
 import requests, json, time, hashlib,os
 
 
-qhbody = os.getenv("tyqhAccount").split('@')
+qhbody = os.getenv("tyqhAccount").split('@').split('\n')
 print(f'共找到{len(qhbody)}个账号,前{round(len(qhbody)/3)}个账号可以吃到助力!!!')
 
 needhelplist=[]
