@@ -8,11 +8,15 @@
 # const $ = new Env('茄皇互助');
 
 
-import requests, json, time, hashlib,os
+import requests, json, time, hashlib,os,random,string
 
 
 qhbody = os.getenv("tyqhAccount").split('@')
 print(f'共找到{len(qhbody)}个账号,前{round(len(qhbody)/3)}个账号可以吃到助力!!!')
+
+def get_random_string(length):
+    letters = string.ascii_letters + string.digits
+    return ''.join(random.sample(letters,length))
 
 needhelplist=[]
 for item in range(round(len(qhbody)/3)):
@@ -97,10 +101,7 @@ for i in range(len(needhelplist)):
             'Referer': 'https://thekingoftomato.ioutu.cn/',
             'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
         }
-        try:
-            resp_zl = requests.get(f'https://qiehuang-apig.xiaoyisz.com/qiehuangsecond/ga/friend-help/help?userId={needhelplist[i]}&type=0',headers=headers)
-            result_zl = json.loads(resp_zl.text)
-            print(result_zl['message'].replace('\n\n\n',' '))
-        except:
-            print('助力失败！检查助力账号格式是否正确！')
-           
+
+        resp_zl = requests.get(f'https://qiehuang-apig.xiaoyisz.com/qiehuangsecond/ga/friend-help/help?userId={needhelplist[i]}&type=0&{get_random_string(32)}',headers=headers)
+        result_zl = json.loads(resp_zl.text)
+        print(result_zl)
