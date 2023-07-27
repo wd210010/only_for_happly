@@ -28,11 +28,14 @@ def login_sign ():#line:17
     O0O0O000OOOO0OOO0 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/reward/tasks',headers =O000O0OOOO00OOOOO ,data =json .dumps ({"task_name":"每日签到","verifyCode":""}))#line:32
     print ('开始签到：签到结果 '+O0O0O000OOOO0OOO0 .text )#line:33
     print ('尝试20次服务器兑换！')#line:35
-    for OO00000OO0OO0000O in range (20 ):#line:36
-        OOOO00OO000O0O000 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/reward/items',headers =O000O0OOOO00OOOOO ,data ='{"item_id":107}')#line:37
-        OOO0O0OO0O000O0O0 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/reward/items',headers =O000O0OOOO00OOOOO ,data ='{"item_id":106}')#line:38
-        print (f'第{OO00000OO0OO0000O+1}次尝试兑换云服务器 '+json .loads (OOOO00OO000O0O000 .text )['message'])#line:39
-        print (f'第{OO00000OO0OO0000O+1}次尝试兑换云服务器 '+json .loads (OOO0O0OO0O000O0O0 .text )['message'])#line:40
+    for OO00000OO0OO0000O in range (200):#line:36
+        try:
+            OOOO00OO000O0O000 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/reward/items',headers =O000O0OOOO00OOOOO ,data ='{"item_id":107}')#line:37
+            OOO0O0OO0O000O0O0 =O00OOO00O0OO0OO00 .post ('https://api.v2.rainyun.com/user/reward/items',headers =O000O0OOOO00OOOOO ,data ='{"item_id":106}')#line:38
+            print (f'第{OO00000OO0OO0000O+1}次尝试兑换云服务器 '+json .loads (OOOO00OO000O0O000 .text )['message'])#line:39
+            print (f'第{OO00000OO0OO0000O+1}次尝试兑换云服务器 '+json .loads (OOO0O0OO0O000O0O0 .text )['message'])#line:40
+        except:
+            print('try later！！')
         time .sleep (5 )#line:41
 if __name__ =='__main__':#line:44
     login_sign ()#line:45
