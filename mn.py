@@ -3,7 +3,7 @@
 # @Time : 2023/8/2 10:23
 # -------------------------------
 # cron "30 0,7 * * *" script-path=xxx.py,tag=匹配cron用
-# const $ = new Env('蒙牛抽牛奶');
+# const $ = new Env('抽牛奶');
 
 import requests,json,os
 
