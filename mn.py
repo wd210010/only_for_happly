@@ -5,7 +5,7 @@
 # cron "30 0,7 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('蒙牛抽牛奶');
 
-import requests,json
+import requests,json,os
 
 
 # pushtoken
