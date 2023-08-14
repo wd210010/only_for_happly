@@ -37,7 +37,7 @@ for i in range(len(Authorization)):
             productName = rt[j]['productName']
             appointmentIdlist.append(appointmentId)
             productNamelist.append(productName)
-        # print(appointmentIdlist)
+
         for k in range(len(appointmentIdlist)):
             data = {
                 'loc':0,
