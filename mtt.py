@@ -9,7 +9,7 @@
 import requests,json,os
 
 # 蜜糖app签到 购物签到七天返20% 发货目前挺快
-# https://channel.mitangwl.cn/h5/spread/zffl.html?appointmentId=198243&inviteId=198243 点击打开下载app或者小程序下单即可
+# https://channel.mitangwl.cn/h5/spread/index.html?inviteId=198243 点击打开下载app或者小程序下单即可
 # 变量为mtau 随便找一个api.mitangwl.cn点进去  请求头里面的Authorization里面的就是 格式如a7f2xxxx-9dxx-46xx-97xx-3e8a7xxxxxxxxx 青龙配置文件config进去设置export mtau=''即可 多账号用&隔开
 Authorization =  os.getenv("mtau").split('&')
 
