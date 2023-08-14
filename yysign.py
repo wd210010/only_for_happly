@@ -8,7 +8,7 @@
 import json,requests,os,time
 
 
-##变量雨云账号密码 注册地址https://www.rainyun.com/NTY1NzY=_   登录后积分中心里面 赚钱积分 积分任务都做下就可以用积分兑换主机 需要每天晚上八点蹲点
+##变量雨云账号密码 注册地址https://www.rainyun.com/NTY1NzY=_   登录后积分中心里面 赚钱积分 (如绑定微信 直接就有2000分）就可以用积分兑换主机 需要每天晚上八点蹲点
 yyusername=os.getenv("yyusername")
 yypassword=os.getenv("yypassword")
 
