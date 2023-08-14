@@ -50,7 +50,7 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 地址1：http://krystal008.eu.org （一个设备打开网址 另外一个设备用狗东app扫码登录获取cookie成功就登录了）
 
 地址2：http://jdflxfd.tk 
-
+ 
 
 ### 赞赏码
 
