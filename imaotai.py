@@ -122,7 +122,7 @@ def Push(contents):
 if __name__ =='__main__':#line:245
     plustoken =os .getenv ("plustoken")#line:246
     mt_tokens =os .getenv ("MTTokenD")#line:247
-    mt_version ="".join (re .findall ('new__latest__version">(.*?)</p>',requests .get ('https://apps.apple.com/cn/app/i%E8%8C%85%E5%8F%B0/id1600482450').text ,re .S )).replace ('版本 ','')#line:248
+    mt_version ="".join (re .findall ('whats-new__latest__version">(.*?)</p>',requests .get ('https://apps.apple.com/cn/app/i%E8%8C%85%E5%8F%B0/id1600482450').text ,re .S )).replace ('版本 ','').replace('çæ¬ ','')#line:248
     print ('当前最新版本为:'+mt_version )#line:249
     if not mt_tokens :#line:250
         print ('MTToken is null')#line:251
