@@ -5,7 +5,7 @@
 # @Time : 2023/8/14 13:23
 # -------------------------------
 # cron "30 5,7 * * *" script-path=xxx.py,tag=匹配cron用
-# const $ = new Env('蜜糖签到')
+# const $ = new Env('蜜堂签到')
 import requests,json,os
 
 # 蜜糖app签到 购物签到七天返20% 发货目前挺快
