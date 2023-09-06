@@ -31,13 +31,6 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 推送一般我都只加了pushplus（个人感觉最好用） 需要别的推送会改脚本的自己改 反正我不想加
 ```
 
-### 部署的其他大佬的签到站
-
-签到站地址：http://141.147.178.177:8923/ (原http://krystal033.tk/my/)
-
-大佬项目地址： https://github.com/qiandao-today/qiandao
-
-
 ### 交流
 
 企鹅交流群&nbsp;&nbsp;<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=ONL0HlPcYXZ02Evw89STPtEHe-6YPa-E&jump_from=webapi&authKey=p/l8KOlojfCDISWXs5Cv/90Cl+yUMEarxoPTgOFATEpWYPzhIoQthCPZ0W2IFq4S"><img border="0" src="https://img.tukuppt.com/png_preview/00/40/12/mbJ6HJWIde.jpg!/fw/780" alt="py交流群" title="py交流群"></a>
