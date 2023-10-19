@@ -32,10 +32,19 @@ for i in range(len(ali_refresh_token)):
     def daily_check(access_token):
         url = 'https://member.aliyundrive.com/v1/activity/sign_in_list'
         headers = {
-            'Authorization': access_token
+            'Authorization': access_token,
+            'Content-Type': 'application/json'
         }
         response = requests.post(url=url, headers=headers, json={}).text
         result = json.loads(response)
+        sign_days = result['result']['signInCount']
+        data ={
+            'signInDay':sign_days
+        }
+        url_reward ='https://member.aliyundrive.com/v1/activity/sign_in_reward'
+        resp2 =  requests.post(url=url_reward, headers=headers, data=json.dumps(data))
+        result2=json.loads(resp2.text)
+        # print(result2)
         if 'success' in result:
             print('签到成功')
             for i, j in enumerate(result['result']['signInLogs']):
