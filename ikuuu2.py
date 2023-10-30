@@ -7,6 +7,9 @@
 # cron "30 5 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('IKuuu机场签到帐号版')
 
+import requests,re
+
+
 import requests
 import os
 
@@ -26,12 +29,16 @@ def sign_in(email, passwd):
     try:
         body = {"email" : email,"passwd" : passwd,}
         headers = {'user-agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'}
-        resp = requests.session()
-        resp.post(f'https://ikuuu.boo/auth/login', headers=headers, data=body)
-        ss = resp.post(f'https://ikuuu.boo/user/checkin').json()
-#         print(ss)
-        if 'msg' in ss:
-            print(ss['msg'])
+        res = requests.get('https://ikuuu.club/', headers=headers)
+        url = re.findall('target="_blank">(.*?)</a>', res.text, re.S)
+        for i in range(len(url)):
+            resp = requests.session()
+            resp.post(f'{url[i]}auth/login', headers=headers, data=body)
+            ss = resp.post(f'{url[i]}user/checkin').json()
+    #         print(ss)
+            if 'msg' in ss:
+                print(ss['msg'])
+                break
     except:
         print('请检查帐号配置是否错误')
 def ql_env():
