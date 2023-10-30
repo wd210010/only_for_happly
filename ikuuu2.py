@@ -27,8 +27,8 @@ def sign_in(email, passwd):
         body = {"email" : email,"passwd" : passwd,}
         headers = {'user-agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'}
         resp = requests.session()
-        resp.post(f'https://ikuuu.art/auth/login', headers=headers, data=body)
-        ss = resp.post(f'https://ikuuu.art/user/checkin').json()
+        resp.post(f'https://ikuuu.boo/auth/login', headers=headers, data=body)
+        ss = resp.post(f'https://ikuuu.boo/user/checkin').json()
 #         print(ss)
         if 'msg' in ss:
             print(ss['msg'])
