@@ -13,8 +13,8 @@ import requests, json,re,os
 #IKuuu机场签到领流量
 ikuuu_cookie = os.getenv("ikuuu_cookie")
 
-url_info = 'https://ikuuu.art/user/profile'
-url = 'https://ikuuu.art/user/checkin'
+url_info = 'https://ikuuu.boo/user/profile'
+url = 'https://ikuuu.boo/user/checkin'
 headers = {
     'cookie': f'{ikuuu_cookie}',
     'user-agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
