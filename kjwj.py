@@ -15,11 +15,11 @@ kjwj_username = os.getenv("kjwj_username").split('&')
 kjwj_password = os.getenv("kjwj_password").split('&')
 
 for i in range(len(kjwj_username)):
-    url = 'https://www.kejiwanjia.com/wp-json/jwt-auth/v1/token'
+    url = 'https://www.kejiwanjia.net/wp-json/jwt-auth/v1/token'
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
-        'origin': 'https://www.kejiwanjia.com',
-        'referer': 'https://www.kejiwanjia.com/'
+        'origin': 'https://www.kejiwanjia.net',
+        'referer': 'https://www.kejiwanjia.net/'
     }
     data = {
         'username': f'{kjwj_username[i]}',
@@ -29,10 +29,10 @@ for i in range(len(kjwj_username)):
     result = json.loads(html.text)
     name = result['name']
     token = result['token']
-    check_url = 'https://www.kejiwanjia.com/wp-json/b2/v1/getUserMission'
-    sign_url = 'https://www.kejiwanjia.com/wp-json/b2/v1/userMission'
+    check_url = 'https://www.kejiwanjia.net/wp-json/b2/v1/getUserMission'
+    sign_url = 'https://www.kejiwanjia.net/wp-json/b2/v1/userMission'
     sign_headers = {
-        'Host': 'www.kejiwanjia.com',
+        'Host': 'www.kejiwanjia.net',
         'Connection': 'keep-alive',
         'Accept': 'application/json, text/plain, */*',
         'authorization': 'Bearer ' + f'{token}',
