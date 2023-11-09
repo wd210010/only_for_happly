@@ -6,7 +6,7 @@
 # cron "0 7,10 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('浙江福彩抽奖')
 
-#变量export zjfcau='' 多账号&隔开  在关注浙江福彩后-工具栏 服务工具-有奖互动 然后开启抓包 点去抽奖或者我的奖品 抓包gtj-api.shiseidochina.cn域名响应头Authorization 建议设置整点运行
+#变量export zjfcau='' 多账号&隔开  在关注浙江福彩后-工具栏 服务工具-有奖互动 然后开启抓包 点去抽奖或者我的奖品 抓包gtj-api.shiseidochina.cn域名响应头Authorization 建议设置整点运行 活动到2023-11-15号为止
 import requests,json,time,os
 
 Authorization=os.getenv("zjfcau").split('&')    
