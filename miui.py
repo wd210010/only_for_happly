@@ -90,6 +90,7 @@ for i in range(len(mi_account)):
     print(result['message'])
     print('userId: '+userId + ' 用户名: '+result_user['entity']['userName']+ ' 段位: '+ result_user['entity']['userGrowLevelInfo']['showLevel'])
 
+
 # 点赞任务
     print('开始加入点赞任务>>>>')
     for a in range(2):
