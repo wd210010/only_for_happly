@@ -72,7 +72,7 @@ for i in range(len(mi_account)):
             c_list.append(a)
     cookie = str(c_list[-1]).replace('{','').replace('}','').replace(',',';').replace(': ','=').replace('\'','').replace(' ','')
     miui_vip_ph = "".join(re.findall('miui_vip_ph=(.*?);', cookie, re.S))
-    url = 'https://api.vip.miui.com/mtop/planet/vip/user/checkin?pathname=/mio/checkIn&version=dev.1144'
+    url = 'https://api.vip.miui.com/mtop/planet/vip/user/checkinV2?ref=vipAccountShortcut&pathname=/mio/checkIn&version=dev.231107'
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
         'Cookie': f'{cookie}'
