@@ -12,8 +12,9 @@
 
 小米签到 小米社区任务得成长值
 配置帐号密码 一一对应 按需增删 不对上会出错 若帐号密码填写没有错误 还是报错应该是账号在非常用设备上登录, 需要验证码, 使用该设备安装图形化工具后自行前去验证https://web-alpha.vip.miui.com/page/info/mio/mio/internalTest 图形化工具怎么安装可参考https://cloud.tencent.com/developer/article/2069955
+图形化工具怎么安装可参考：centos7安装图形化界面图文详解 https://cloud.tencent.com/developer/article/2069955
+使用该设备安装图形化工具后自行前去验证 https://web-alpha.vip.miui.com/page/info/mio/mio/internalTest 
 青龙变量export mi_account='' export mi_password=''
-青龙变量 mi_account mi_password
 '''
 
 import base64
