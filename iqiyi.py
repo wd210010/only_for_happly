@@ -6,6 +6,10 @@
 # cron "30 7,10 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('爱奇艺签到')
 
+#变量 iqiyi cookie里面找P00001 P00003 dfp这三个参数 放在青龙config.sh里面或者在青龙变量分别设置这三个参数 此脚本不要瞎改
+# export P00001 = ''
+# export P00003 = ''
+# export dfp = ''
 
 import requests, random, string, hashlib, time, json,os
 from json import dumps
