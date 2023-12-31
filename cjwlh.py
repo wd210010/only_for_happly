@@ -13,8 +13,7 @@ import requests,json,re,os
 # 微信小程序 》》》》  #小程序://春茧未来荟/YjaFJZ4TMwoBd6a 
 # 打开后注册会员 抓包program.springcocoon.com域名的请求同里面的cookie填入青龙变量 config.sh 里export ='' 多账号&分割  或新建变量里面 多号新建多个 
 
-cjwlhck = os.getenv("cjwlhck").split('&')
-cookielist =cjwlhck.split('&')
+cookielist =os.getenv("cjwlhck").split('&')
 
 for i in range(len(cookielist)):
     print(f'开始第{i+1}个账号签到')
