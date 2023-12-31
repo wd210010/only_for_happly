@@ -1,4 +1,13 @@
-import requests,json,re
+#!/usr/bin/python3
+# -- coding: utf-8 -- 
+# -------------------------------
+# @Author : github@wd210010 https://github.com/wd210010/only_for_happly
+# @Time : 2023/12/31 9:23
+# -------------------------------
+# cron "6,10,15 * * *" script-path=xxx.py,tag=匹配cron用
+# const $ = new Env('春茧未来荟')
+import requests,json,re,os
+
 
 # 青龙变量 cjwlhck  
 # 微信小程序 》》》》  #小程序://春茧未来荟/YjaFJZ4TMwoBd6a 
