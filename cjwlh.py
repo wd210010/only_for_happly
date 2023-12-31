@@ -10,7 +10,7 @@ import requests,json,re,os
 
 
 # 青龙变量 cjwlhck  
-# 微信小程序 》》》》  #小程序://春茧未来荟/YjaFJZ4TMwoBd6a 
+# 微信小程序 》》》》  #小程序://春茧未来荟/YjaFJZ4TMwoBd6a  也是一个获取华润积分（万象星）的地方 比一点万象积分还多多点
 # 打开后注册会员 抓包program.springcocoon.com域名的请求同里面的cookie填入青龙变量 config.sh 里export ='' 多账号&分割  或新建变量里面 多号新建多个 
 
 cookielist =os.getenv("cjwlhck").split('&')
