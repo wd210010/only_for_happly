@@ -4,7 +4,7 @@
 # @Author : github@wd210010 https://github.com/wd210010/only_for_happly
 # @Time : 2023/12/31 9:23
 # -------------------------------
-# cron "6,10,15 * * *" script-path=xxx.py,tag=匹配cron用
+# cron "15 15 6,10,15 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('春茧未来荟')
 import requests,json,re,os
 
