@@ -89,7 +89,7 @@ for a in range(len(apitoken)):#
                     Push(contents=msg)
                 else:
                     print(result6)
-###做任务得的次数每天不清空 如果想每天都用掉 就把下面的93行到102行的注释去掉
+###做任务得的次数每天不清空 如果想每天都用掉 就把下面的93行到104行的注释去掉
         # for i in range(7):
         #     data2 ={"code":"SCENE-202312221201352052951600711680","provice_name":"浙江省","city_name":"宁波市","area_name":"江北区","address":"浙江省宁波市江北区万达广场","longitude":longitude,"dimension":dimension}
         #     resp7 = session.post('https://gateway.jmhd8.com/geement.marketinglottery/api/v1/marketinglottery',headers=headers,data=json.dumps(data2))
@@ -100,5 +100,5 @@ for a in range(len(apitoken)):#
         #         if '龙年' in prize:
         #             msg = f'账号{a+1}获得{prize}'
         #             Push(contents=msg)
-            else:
-                print(result7)
+            # else:
+            #     print(result7)
