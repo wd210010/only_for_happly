@@ -9,12 +9,14 @@
 
 import requests, json 
 import os
+import logging
 
 # 青龙变量 xk_username xk_password
 xk_username= os.getenv("xk_username").split('&')
 xk_password = os.getenv("xk_password").split('&')
 
 
+logging.captureWarnings(True)
 for i in range(len(xk_username)):
     print(f'开始第{i + 1}个帐号签到')
     url = 'https://www.xkdaili.com/tools/submit_ajax.ashx?action=user_login&site_id=1'
@@ -59,6 +61,6 @@ for i in range(len(xk_username)):
     data_sign = {
         'type': 'login'
     }
-    html_sign = requests.post(url=url_sign, headers=headers_sign, data=data_sign)
+    html_sign = requests.post(url=url_sign, headers=headers_sign, data=data_sign, verify=False)
     result = json.loads(html_sign.text)['msg']
     print(result)
