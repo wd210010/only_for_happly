@@ -62,43 +62,52 @@ for a in range(len(apitoken)):#
     time.sleep(2)
 
     #获取openid
-    resp4 =session.get(f' https://gateway.jmhd8.com/geement.usercenter/api/v1/user/information?levelprocessinfo=false&gpslocationinfo=false&popularizeinfo=false&disablequery_extra_field=true&disablequery_location=true&disablequery_memberinfo=true&disablequery_customfield=true&disablequery_levelinfo=true&disablequery_perfectinfo_status=true&disablequery_extrainformation=true',headers=headers)
-    user_id = json.loads(resp4.text)['data']['user_id']
-    mp_app_id = json.loads(resp4.text)['data']['mp_app_id']
-    headers2 ={
-        'User-Agent':f'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.45(0x18002d27) NetType/WIFI Language/zh_CN miniProgram/{mp_app_id}',
-        'Referer': f'https://www.ukh5.com/g/12/PaoKu/index.html?beecre_user_id={user_id}'
-    }
-    #玩游戏
-    print('开始玩游戏任务》》》')
-    for j in range(3):
-        resp5= session.post(f'https://www.ukh5.com/g/12/PaoKu/api.php?a=sumbitscore&openid={user_id}&score=200',headers=headers2)
-        result5 = json.loads(resp5.text)
-        print(result5)
+    try:
+        resp4 =session.get(f' https://gateway.jmhd8.com/geement.usercenter/api/v1/user/information?levelprocessinfo=false&gpslocationinfo=false&popularizeinfo=false&disablequery_extra_field=true&disablequery_location=true&disablequery_memberinfo=true&disablequery_customfield=true&disablequery_levelinfo=true&disablequery_perfectinfo_status=true&disablequery_extrainformation=true',headers=headers)
+        user_id = json.loads(resp4.text)['data']['user_id']
+        mp_app_id = json.loads(resp4.text)['data']['mp_app_id']
+        headers2 ={
+            'User-Agent':f'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.45(0x18002d27) NetType/WIFI Language/zh_CN miniProgram/{mp_app_id}',
+            'Referer': f'https://www.ukh5.com/g/12/PaoKu/index.html?beecre_user_id={user_id}'
+        }
+        #玩游戏
+        print('开始玩游戏任务》》》')
+        for j in range(3):
+            resp5= session.post(f'https://www.ukh5.com/g/12/PaoKu/api.php?a=sumbitscore&openid={user_id}&score=200',headers=headers2)
+            result5 = json.loads(resp5.text)
+            print(result5)
+    except:
+        continue
 
     if current_date.hour > 23:
-        for i in range(3):
-            data ={"code":"SCENE-202312221126017708681600711680","provice_name":"浙江省","city_name":"宁波市","area_name":"江北区","address":"浙江省宁波市江北区万达广场","longitude":longitude,"dimension":dimension}
-            resp6 = session.post('https://gateway.jmhd8.com/geement.marketinglottery/api/v1/marketinglottery',headers=headers,data=json.dumps(data))
-            result6 = json.loads(resp6.text)
-            if result6['success'] == True and result6['data']['prizedto']['prize_name']:
-                prize =result6['data']['prizedto']['prize_name']
-                print(prize)
-                if '龙年' in prize:
-                    msg = f'账号{a+1}获得{prize}'
-                    Push(contents=msg)
-                else:
-                    print(result6)
-###做任务得的次数每天不清空 如果想每天都用掉 就把下面的93行到104行的注释去掉
-        # for i in range(7):
-        #     data2 ={"code":"SCENE-202312221201352052951600711680","provice_name":"浙江省","city_name":"宁波市","area_name":"江北区","address":"浙江省宁波市江北区万达广场","longitude":longitude,"dimension":dimension}
-        #     resp7 = session.post('https://gateway.jmhd8.com/geement.marketinglottery/api/v1/marketinglottery',headers=headers,data=json.dumps(data2))
-        #     result7 = json.loads(resp7.text)
-        #     if result7['success'] == True and result7['data']['prizedto']['prize_name']:
-        #         prize =result7['data']['prizedto']['prize_name']
-        #         print(prize)
-        #         if '龙年' in prize:
-        #             msg = f'账号{a+1}获得{prize}'
-        #             Push(contents=msg)
-            # else:
-            #     print(result7)
+        try:
+            for i in range(3):
+                data ={"code":"SCENE-202312221126017708681600711680","provice_name":"浙江省","city_name":"宁波市","area_name":"江北区","address":"浙江省宁波市江北区万达广场","longitude":longitude,"dimension":dimension}
+                resp6 = session.post('https://gateway.jmhd8.com/geement.marketinglottery/api/v1/marketinglottery',headers=headers,data=json.dumps(data))
+                result6 = json.loads(resp6.text)
+                if result6['success'] == True and result6['data']['prizedto']['prize_name']:
+                    prize =result6['data']['prizedto']['prize_name']
+                    print(prize)
+                    if '龙年' in prize:
+                        msg = f'账号{a+1}获得{prize}'
+                        Push(contents=msg)
+                    else:
+                        print('*******')
+        except:
+            continue
+###做任务得的次数每天不清空 如果想每天都用掉 就把下面的99行到113行的注释去掉
+        # try:
+        #     for i in range(3):
+        #         data2 ={"code":"SCENE-202312221201352052951600711680","provice_name":"浙江省","city_name":"宁波市","area_name":"江北区","address":"浙江省宁波市江北区万达广场","longitude":longitude,"dimension":dimension}
+        #         resp7 = session.post('https://gateway.jmhd8.com/geement.marketinglottery/api/v1/marketinglottery',headers=headers,data=json.dumps(data2))
+        #         result7 = json.loads(resp7.text)
+        #         if result7['success'] == True and result7['data']['prizedto']['prize_name']:
+        #             prize =result7['data']['prizedto']['prize_name']
+        #             print(prize)
+        #             if '龙年' in prize:
+        #                 msg = f'账号{a+1}获得{prize}'
+        #                 Push(contents=msg)
+        #         else:
+        #             print('*******')
+        # except:
+        #     continue
