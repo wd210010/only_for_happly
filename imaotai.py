@@ -4,7 +4,7 @@
 # -------------------------------
 # cron "1,30 9 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('小茅预约');
-
+# 2024.1.9 更新预约龙年茅台id
 import datetime #line:1
 import os #line:2
 import random #line:3
@@ -21,7 +21,7 @@ import json #line:8
 
 p_c_map ={}#line:1
 mt_r ='clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/'#line:2
-res_map ={'10213':'贵州茅台酒（癸卯兔年）','2476':'贵州茅台酒（壬寅虎年）','10214':'贵州茅台酒（癸卯兔年）x2'}#line:7
+res_map ={'10941':'贵州茅台酒（甲辰龙年）','10942':'贵州茅台酒（甲辰龙年）x2'}#line:7#,'2478':'贵州茅台酒（珍品）'
 def mt_add (OOOOO0O00O00O0000 ,OOO00OOO0O00OO00O ,OOOO00000O00OO0O0 ,O00000O0OO00OO00O ,OO0OO0000O000O0O0 ,O0OO000O00O0OO00O ):#line:10
     O00OO000OOOOO0OO0 =f'{int(time.time() * 1000)}'#line:11
     OOOO0OOO0OO0O000O =requests .get (f'http://82.157.10.108:8086/get_mtv?DeviceID={O0OO000O00O0OO00O}&MTk={O00OO000OOOOO0OO0}&version={mt_version}&key=yaohuo')#line:13
