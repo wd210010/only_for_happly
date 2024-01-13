@@ -28,7 +28,7 @@ headers = {
 session = requests.session()
 response = session.get('https://www.right.com.cn/FORUM/home.php?mod=spacecp&ac=credit&showcredit=1', headers=headers)
 try:
-    coin = re.findall("恩山币: </em>(.*?)nb &nbsp;", response.text)[0]
+    coin = re.findall("恩山币: </em>(.*?)&nbsp;", response.text)[0]
     point = re.findall("<em>积分: </em>(.*?)<span", response.text)[0]
     res = f"恩山币：{coin}\n积分：{point}"
     print(res)
