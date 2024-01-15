@@ -39,7 +39,7 @@ for i in range(len(zgfcaulist)):
         for j in range(3):
             resp = requests.post('https://ssqcx-serv.cwlo.com.cn/api/wish/send',headers=headers,data=f'wish={params}')
             result = json.loads(resp.text)
-            print(result)
+            print(result['msg'])
             if j == 0:
                 wish_id = result['data']['wish_id']
                 wishidlist.append(wish_id)
