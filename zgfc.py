@@ -84,7 +84,7 @@ for c in range(len(zgfcaulist)):
     resp4 = requests.post('https://ssqcx-serv.cwlo.com.cn/api/user/prize', headers=headers3)
     try:
         result4 = json.loads(resp4.text)['data']['prize']
-        print('获取已经获得奖品：')
+        print(f'账号{c+1}获取已经获得奖品：')
         print(f'获得奖品数量：{str(len(result4))}')
         for d in range(len(result4)):
             print(result4[d]['prize_title'])
