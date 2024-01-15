@@ -34,7 +34,7 @@ for i in range(len(zgfcaulist)):
 
     print('**开始发送愿望**')
     try:
-        for j in range(1):
+        for j in range(3):
             resp = requests.post('https://ssqcx-serv.cwlo.com.cn/api/wish/send',headers=headers,data='wish=66666666')
             result = json.loads(resp.text)
             print(result)
