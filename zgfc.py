@@ -6,12 +6,11 @@
 # -------------------------------
 # cron "0 0 8 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('福彩抽奖')
-import requests,json,os,random,time
+import requests,json,os,random
 from urllib.parse import quote
 
 #活动路径 中国福彩公众号 右下角新年活动
 #手机号登录后 抓取https://ssqcx-serv.cwlo.com.cn域名下的请求头的Authorization 放入青龙变量或者放入config.sh 变量名为zgfcau 放在config.sh的话 多账号用&分割 放在青龙变量就多建几个变量
-
 zgfcaulist =os.getenv("zgfcau").split('&')
 #推送加 token
 plustoken =os.getenv("plustoken")
@@ -61,7 +60,6 @@ for i in range(len(zgfcaulist)):
                 print('未中奖')
             else:
                 print(success)
-            time.sleep(2)
     except:
         print('该Authorization可能无效！')
 print(wishidlist)
@@ -76,5 +74,18 @@ for a in range(len(wishidlist)):
         resp3 = requests.post('https://ssqcx-serv.cwlo.com.cn/api/wish/zan',headers=headers2,data=f'wish_id={wishidlist[a]}')
         result3 = json.loads(resp3.text)
         print(result3)
-
-
+for c in range(len(zgfcaulist)):
+    headers3 = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.45(0x18002d2a) NetType/WIFI Language/zh_CN',
+        'Authorization': zgfcaulist[c],
+    }
+    resp4 = requests.post('https://ssqcx-serv.cwlo.com.cn/api/user/prize', headers=headers3)
+    try:
+        result4 = json.loads(resp4.text)['data']['prize']
+        print('获取已经获得奖品：')
+        print(f'获得奖品数量：{str(len(result4))}')
+        for d in range(len(result4)):
+            print(result4[d]['prize_title'])
+    except:
+        print('*****')
