@@ -6,7 +6,7 @@
 # -------------------------------
 # cron "0 0 8 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('福彩抽奖')
-import requests,json,os
+import requests,json,os,time
 
 #活动路径 中国福彩公众号 右下角新年活动
 #手机号登录后 抓取https://ssqcx-serv.cwlo.com.cn域名下的请求头的Authorization 放入青龙变量或者放入config.sh 变量名为zgfcau 放在config.sh的话 多账号用&分割 放在青龙变量就多建几个变量
@@ -45,18 +45,20 @@ for i in range(len(zgfcaulist)):
         print('该Authorization可能无效！')
     print('**开始抽奖**')
     try:
-        resp2 = requests.post('https://ssqcx-serv.cwlo.com.cn/api/lottery/start', headers=headers)
-        result2 = json.loads(resp2.text)
-        # print(result2)
-        success = result2['msg']
-        if success =='成功' and len(result2['data']['lottery_sn'])>0:
-            massage = f'账号{i+1}中奖了！请自行查看'
-            print(massage)
-            Push(contents=massage)
-        elif success =='成功' and len(result2['data']['lottery_sn'])==0:
-            print('未中奖')
-        else:
-            print(success)
+        for i in range(3):
+            resp2 = requests.post('https://ssqcx-serv.cwlo.com.cn/api/lottery/start', headers=headers)
+            result2 = json.loads(resp2.text)
+            # print(result2)
+            success = result2['msg']
+            if success =='成功' and len(result2['data']['lottery_sn'])>0:
+                massage = f'账号{i+1}中奖了！请自行查看'
+                print(massage)
+                Push(contents=massage)
+            elif success =='成功' and len(result2['data']['lottery_sn'])==0:
+                print('未中奖')
+            else:
+                print(success)
+            time.sleep(3)
     except:
         print('该Authorization可能无效！')
 print(wishidlist)
