@@ -6,7 +6,7 @@
 # -------------------------------
 # cron "0 0 8 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('福彩抽奖')
-import requests,json,os,random
+import requests,json,os,random,time
 from urllib.parse import quote
 
 #活动路径 中国福彩公众号 右下角新年活动
@@ -60,6 +60,7 @@ for i in range(len(zgfcaulist)):
                 print('未中奖')
             else:
                 print(success)
+            time.sleep(2)
     except:
         print('该Authorization可能无效！')
 print(wishidlist)
