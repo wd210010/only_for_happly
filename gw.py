@@ -12,7 +12,7 @@ import os
 import notify
 
 '''
-export gw='邮箱&密码' 多账号#号割开   机场注册地址https://balala.io/auth/register?code=dnL6
+export gw='邮箱&密码' 多账号#号割开   机场注册地址https://kkone.io/auth/register?code=dnL6
 '''
 def main():
     r = 1
@@ -29,8 +29,8 @@ def sign_in(email, passwd):
         body = {"email" : email,"passwd" : passwd,}
         headers = {'user-agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'}
         resp = requests.session()
-        resp.post(f'https://balala.io/auth/login', headers=headers, data=body)
-        ss = resp.post(f'https://balala.io/user/checkin').json()
+        resp.post(f'https://kkone.io/auth/login', headers=headers, data=body)
+        ss = resp.post(f'https://kkone.io/user/checkin').json()
         if 'msg' in ss:
             print(ss['msg'])
             notify.send("GW树洞机场签到领流量", ss['msg'])
