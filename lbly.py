@@ -7,6 +7,7 @@
 
 import requests, json
 import os
+import notify
 
 # 青龙变量 export blh_hd= ''    抓包https://m.mallcoo.cn/api/user/User/GetRewardList 的请求体
 # 变量类似 {"MallID":11192,"Header":{"Token":"*******,16214","systemInfo":{"model":"iPhone13<iPhone14,5>","SDKVersion":"2.30.4","system":"iOS15.6","version":"8.0.34","miniVersion":"2.5.59.1"}}}
@@ -21,3 +22,4 @@ for i in range(len(blh_hd)):
     resp = requests.post(url='https://m.mallcoo.cn/api/user/User/CheckinV2', headers=headers, data=blh_hd[i])
     result = json.loads(resp.text)['d']['NickName'] + '\n' + json.loads(resp.text)['d']['Msg']
     print(result)
+    notify.send("丽宝乐园小程序签到", result)

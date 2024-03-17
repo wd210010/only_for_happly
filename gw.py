@@ -9,6 +9,7 @@
 
 import requests
 import os
+import notify
 
 '''
 export gw='邮箱&密码' 多账号#号割开   机场注册地址https://balala.io/auth/register?code=dnL6
@@ -32,8 +33,10 @@ def sign_in(email, passwd):
         ss = resp.post(f'https://balala.io/user/checkin').json()
         if 'msg' in ss:
             print(ss['msg'])
+            notify.send("GW树洞机场签到领流量", ss['msg'])
     except:
         print('账号密码错')
+        notify.send("GW树洞机场签到领流量", '账号密码错')
 def ql_env():
     if "gw" in os.environ:
         token_list = os.environ['gw'].split('#')
