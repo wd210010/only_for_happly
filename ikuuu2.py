@@ -12,6 +12,7 @@ import requests,re
 
 import requests
 import os
+import notify
 
 # export ikuuu='邮箱&密码'      多号#号隔开
 
@@ -38,9 +39,11 @@ def sign_in(email, passwd):
     #         print(ss)
             if 'msg' in ss:
                 print(ss['msg'])
+                notify.send("IKuuu机场签到", ss['msg'])
                 break
     except:
         print('请检查帐号配置是否错误')
+        notify.send("IKuuu机场签到", '请检查帐号配置是否错误')
 def ql_env():
     if "ikuuu" in os.environ:
         token_list = os.environ['ikuuu'].split('#')

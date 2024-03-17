@@ -9,6 +9,7 @@
 
 import requests, json ,os
 import datetime
+import notify
 
 # 青龙变量 qtw_cookie
 qtw_cookie = os.getenv("qtw_cookie").split('&')
@@ -51,7 +52,10 @@ reward = re['data']['signData'][f'{weekday}']['title']
 type_1 = re['data']['signData'][f'{weekday}']['type']
 if isSign == 1 and type_1 == 1:
     print('今日签到成功！获得VIP：' + reward)
+    notify.send("千图网签到", '今日签到成功！获得VIP：' + reward)
 elif isSign == 1 and type_1 == 2:
     print('今日签到成功！获得积分：' + reward)
+    notify.send("千图网签到", '今日签到成功！获得积分：' + reward)
 else:
     print('签到失败！！')
+    notify.send("千图网签到", '签到失败！！')

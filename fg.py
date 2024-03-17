@@ -8,6 +8,7 @@
 # const $ = new Env('富贵论坛签到');
 
 import requests, re,time,json,time,os
+import notify
 
 # 富贵论坛签到
 # export fg_cookies='配置富贵论坛cookie'
@@ -33,5 +34,6 @@ for i in range(len(fg_cookies)):
     re4 = requests.post(url=url4, headers=headers2).text
     result =str(re.findall('showDialog\((.*?),', re4, re.S)).replace('\'', '').replace('[', '').replace(']', '').replace('"', '')
     print(result)
+    notify.send("富贵论坛签到", result)
 
 
