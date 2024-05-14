@@ -7,7 +7,7 @@
 # cron "15 20 6,15 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('小米运动')
 
-#变量为misport 分别为手机号#密码#最小步数#最大步数 例子：18888888888#11111111#10000#20000 多号用&分割 zepplife（原小米运动）注册后绑定支付宝微信同步步数
+#变量为misport 分别为手机号-密码-最小步数-最大步数 例子：18888888888-11111111-10000-20000 多号用#分割 zepplife（原小米运动）注册后绑定支付宝微信同步步数
 import random
 import re
 import time,os
@@ -129,7 +129,7 @@ class MiMotion:
         return msg_all
 
 def string_to_dict(s):
-    parts = s.split('#')
+    parts = s.split('-')
     result_dict = {}
     result_dict['phone'] = parts[0]
     result_dict['password'] = parts[1]
@@ -138,7 +138,7 @@ def string_to_dict(s):
     return result_dict
 
 def start():
-    s = os.getenv("misport").split('&')
+    s = os.getenv("misport").split('#')
     print(f'共{len(s)}个账号')
     for i in range(len(s)):
         item =s[i]
