@@ -54,7 +54,7 @@ for i in range(len(ydwx_deviceParams)):
     'Content-Type': 'application/x-www-form-urlencoded',
     'X-Requested-With': 'com.crland.mixc',
     'Sec-Fetch-Site': 'same-origin',
-    'Referer': 'https://app.mixcapp.com/m/m-20014/signIn?showWebNavigation=true&timestamp=1676906528979&appVersion=3.42.2&mallNo=20014',
+    'Referer': 'https://app.mixcapp.com/m/m-20014/signIn?showWebNavigation=true&timestamp=1676906528979&appVersion=3.53.0&mallNo=20014',
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7'
   }
