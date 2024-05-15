@@ -8,6 +8,8 @@ import time
 from urllib.parse import urlparse, parse_qs
 from notify import send
 
+
+#首先，打开 APP，使用抓包工具抓包微博超话界面 取https://api.weibo.cn/2/cardlist这个域名的整个链接 填入变量 变量名weibo_my_cookie。
 # 定义常量
 API_URL = "https://api.weibo.cn/2/cardlist"
 SIGN_URL = "https://api.weibo.cn/2/page/button"
