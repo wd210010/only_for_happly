@@ -14,6 +14,16 @@ import requests,json,re,os
 # 打开后注册会员 抓包program.springcocoon.com域名的请求同里面的cookie填入青龙变量 config.sh 里export ='' 多账号&分割  或新建变量里面 多号新建多个 
 
 cookielist =os.getenv("cjwlhck").split('&')
+# 推送加
+plustoken = os.getenv("plustoken")
+
+#推送函数
+def Push(contents):
+    # 推送加
+    headers = {'Content-Type': 'application/json'}
+    json = {"token": plustoken, 'title': '春茧未来荟', 'content': contents.replace('\n', '<br>'), "template": "json"}
+    resp = requests.post(f'http://www.pushplus.plus/send', json=json, headers=headers).json()
+    print('push+推送成功' if resp['code'] == 200 else 'push+推送失败')
 
 for i in range(len(cookielist)):
     print(f'开始第{i+1}个账号签到')
@@ -41,7 +51,9 @@ for i in range(len(cookielist)):
         result = json.loads(resp.text)
         if result['success'] == False:
             msg =result['error']['message']
+            message =f'第{i+1}个账号签到失败:{msg}'
             print(f'签到失败：{msg}')
+            Push(contents=message)
         else:
             point = result['result']['listSignInRuleData'][0]['point']
             print(f'签到成功获得万象星：{str(point)}个')
