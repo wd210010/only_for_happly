@@ -7,7 +7,8 @@
 # cron "15 15 6,10,15 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('999会员中心(华润积分)')
 import requests
-import json,os
+import json
+import os
 from datetime import datetime
 
 #微信扫码 https://pic.imgdb.cn/item/664c0ef9d9c307b7e9fabfc4.png 这个图片(走下我邀请) 注册登录后抓mc.999.com.cn域名请求头里面的Authorization 变量名为jjjck 多号用#分割
@@ -62,9 +63,9 @@ for i in range(len(jjck)):
             response = requests.post('https://mc.999.com.cn/zanmall_diy/ma/client/pointTaskClient/finishTask', headers=headers, json=data)
             result = json.loads(response.text)['data']
             point =  result['point']
-            if result['success'] =='true':
+            if result['success'] ==True:
                 print(f'打卡内容{Meaning}---打卡完成 获得积分{point}')
             else:
                 print(f'打卡内容{Meaning}---请勿重复打卡')
         except:
-            print('账号失效')
+            print('请检查抓包是否准确 个别青龙版本运行不了')
