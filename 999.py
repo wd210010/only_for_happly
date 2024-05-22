@@ -5,7 +5,7 @@
 # @Time : 2024/05/321 9:23
 # -------------------------------
 # cron "15 15 6,10,15 * * *" script-path=xxx.py,tag=匹配cron用
-# const $ = new Env('999会员中心(华润积分)')
+# const $ = new Env('999会员中心')
 import requests
 import json
 import os
