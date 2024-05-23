@@ -69,3 +69,4 @@ for i in range(len(jjck)):
                 print(f'打卡内容{Meaning}---请勿重复打卡')
         except:
             print('请检查抓包是否准确 个别青龙版本运行不了')
+            continue
