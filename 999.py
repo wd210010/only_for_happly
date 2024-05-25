@@ -17,18 +17,23 @@ from datetime import datetime
 jjck  =os.getenv("jjjck").split('#')
 today = datetime.now().date().strftime('%Y-%m-%d')
 for i in range(len(jjck)):
-    print(f'开始账号{i+1}打卡')
     Authorization = jjck[i]
     headers = {
         "Host": "mc.999.com.cn",
         "Connection": "keep-alive",
-        "Content-Length": "92",
         "locale": "zh_CN",
         "Authorization": Authorization,
         "content-type": "application/json",
         "Accept-Encoding": "gzip,compress,br,deflate",
         "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.48(0x18003030) NetType/WIFI Language/zh_CN"
     }
+
+    try:
+        resp_user = requests.get('https://mc.999.com.cn/zanmall_diy/ma/personal/user/info', headers=headers)
+        phone = json.loads(resp_user.text)['data']['phone']
+    except:
+        continue
+    print(f'开始账号: {phone} 打卡')
     checkInCodeList =[
         {
         "checkInCode": "mtbbs",
@@ -63,10 +68,17 @@ for i in range(len(jjck)):
             response = requests.post('https://mc.999.com.cn/zanmall_diy/ma/client/pointTaskClient/finishTask', headers=headers, json=data)
             result = json.loads(response.text)['data']
             point =  result['point']
-            if result['success'] ==True:
+            if result['success'] == True:
                 print(f'打卡内容{Meaning}---打卡完成 获得积分{point}')
             else:
                 print(f'打卡内容{Meaning}---请勿重复打卡')
         except:
             print('请检查抓包是否准确 个别青龙版本运行不了')
             continue
+    try:
+        resp = requests.get('https://mc.999.com.cn/zanmall_diy/ma/personal/point/pointInfo', headers=headers)
+        totalpoints = json.loads(resp.text)['data']
+        print(f'当前拥有总积分:{totalpoints}')
+    except:
+        continue
+    print('*'*30)
