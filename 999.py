@@ -6,7 +6,7 @@
 # -------------------------------
 # cron "15 15 6,10,15 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('999会员中心')
-import requests
+import requests,time
 import json,random
 import os
 from datetime import datetime
@@ -95,11 +95,18 @@ for i in range(len(jjck)):
             point=str(json.loads(resp_read.text)['data']['point'])
             print(f'阅读成功！获得{point}积分')
         #体检
-        data_h_test = {"type":"complete_health_testing","params":{"testCode":"202407011105550lh8tr"}}
-        resp_h_test = requests.post('https://mc.999.com.cn/zanmall_diy/ma/client/pointTaskClient/finishTask',
-                                  headers=headers, json=data_h_test)
-        point = str(json.loads(resp_h_test.text)['data']['point'])
-        print(f'体检成功！获得{point}积分')
+        for i in range(3):
+            h_test ={"gender":"1","age":"17","height":"188","weight":"50","waist":"55","hip":"55","food":{"breakfast":"1","dietHabits":["1"],"foodPreference":"1"},"life":{"livingCondition":["1"],"livingHabits":["1"]},"exercise":{"exerciseTimesWeekly":"1"},"mental":{"mentalState":["2"]},"body":{"bodyStatus":["2"],"oralStatus":"1","fruitReact":"1","skinCondition":["1"],"afterMealReact":"2","defecation":"2"},"sick":{"bloating":"2","burp":"2","fart":"3","gurgle":"3","stomachache":"2","behindSternum":"4","ThroatOrMouthAcid":"4","FoodReflux":"4","auseaOrVomiting":"4"},"other":{"familyProducts":["5"]}}
+            resp_htest = requests.post('https://mc.999.com.cn/zanmall_diy/ma/health/add',
+                                      headers=headers, json=h_test)
+            referNo = json.loads(resp_htest.text)['data']['referNo']
+            print(referNo)
+            data_h_test = {"type":"complete_health_testing","params":{"testCode":f"{referNo}"}}
+            resp_h_test = requests.post('https://mc.999.com.cn/zanmall_diy/ma/client/pointTaskClient/finishTask',
+                                      headers=headers, json=data_h_test)
+            point = str(json.loads(resp_h_test.text)['data']['point'])
+            print(f'体检成功！获得{point}积分')
+            time.sleep(5)
 
         try:
             resp = requests.get('https://mc.999.com.cn/zanmall_diy/ma/personal/point/pointInfo', headers=headers)
@@ -109,7 +116,7 @@ for i in range(len(jjck)):
             continue
     except Exception as e:
         print(str(e))
-        msg =f'账号{i+1}可能失效！'
+        msg =f'账号可能失效！'
         Push(contents=msg)
         continue
-print('*'*30)
+    print('*'*30)
