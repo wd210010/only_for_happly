@@ -5,7 +5,7 @@
 # @Time : 2024/07/13 9:23
 # -------------------------------
 # cron "15 0,30 9 * * *" script-path=xxx.py,tag=匹配cron用
-# const $ = new Env('999会员中心')
+# const $ = new Env('imaotai')
 
 import datetime
 import os
