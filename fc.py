@@ -4,6 +4,7 @@
 # -------------------------------
 # cron "30 8 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('福彩活动');
+#活动地址:https://rf24-h1.cwlo.com.cn/?inviterId=15287&from=qr或者https://rf24-h1.cwlo.com.cn/?inviterId=24889&from=qr
 #变量名fcau  抓取https://rf24-serv.cwlo.com.cn这个域名下的Authorization 如果填配置文件就用&隔开 或者一个个的加入环境变量
 import requests,json,os
 
