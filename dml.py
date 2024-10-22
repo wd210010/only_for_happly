@@ -37,7 +37,7 @@ else:
 
         print(f"\n=======达美乐开始执行账号{i}=======")
 
-        url = "https://game.dominos.com.cn/volcano/game/gameDone"
+        url = "https://game.dominos.com.cn/bulgogi/game/gameDone"
 
         payload = f"openid={Cookie}&score=d8XtWSEx0zRy%2BxdeJriXZeoTek6ZVZdadlxdTFiN9yrxt%2BSIax0%2BRccbkObBZsisYFTquPg%2FG2cnGPBlGV2f32C6D5q3FFhgvcfJP9cKg%2BXs6l7J%2BEcahicPml%2BZWp3P4o1pOQvNdDUTQgtO6NGY0iijZ%2FLAmITy5EJU8dAc1EnbvhOYG36Qg1Ji4GDRoxAfRgmELvpLM6JSFlCEKG2C2s%2BJCevOJo7kwsLJCvwbVgeewhKSAyCZYnJQ4anmPgvrv6iUIiFQP%2Bj6%2B5p1VETe5xfawQ4FQ4w0mttXP0%2BhX39n1dzDrfcSkYkUaWPkIFlHAX7QPT3IgG6MhIKCvB%2BUcw%3D%3D&tempId=16408240716151126162"
 
@@ -50,7 +50,7 @@ else:
         }
 
         while True:
-            shrurl = "https://game.dominos.com.cn/volcano/game/sharingDone"
+            shrurl = "https://game.dominos.com.cn/bulgogi/game/sharingDone"
             payload2 = f"openid={Cookie}&from=1&target=0"
             res = requests.post(shrurl, data=payload2, headers=headers).json()
             if res['errorMessage'] == "今日分享已用完，请明日再来":
