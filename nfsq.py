@@ -55,6 +55,12 @@ def make_request(method, url, headers=None, params=None, json_data=None):
 def login(apitoken):
     headers = {**HEADERS, 'apitoken': apitoken}
     response = make_request('GET', USER_INFO_URL, headers=headers)
+    
+    # 检查 token 是否失效
+    if response is None or (response and response.get('code') == 401):  # 假设 401 表示未授权，即 token 失效
+        print(f"Token '{apitoken}' 失效，请检查！")
+        return None, None
+
     if response and 'data' in response:
         data = response['data']
         return data['user_no'], data['nick_name']
@@ -124,6 +130,11 @@ def goods_simple(apitoken):
 
 def process_account(apitoken):
     user_no, nick_name = login(apitoken)
+    
+    # 增加检查，如果 token 失效则直接跳过
+    if user_no is None and nick_name is None:
+        return
+
     print(f"============账号nick_name:{nick_name or user_no}============")
 
     everydata_counted = today_count(apitoken)
@@ -175,7 +186,6 @@ def process_account(apitoken):
     for good in goods_list:
         if good.get("win_goods_sub_type"):
             print(good["win_goods_name"])
-
 
 if __name__ == '__main__':
     apitoken_list = get_apitokens()
