@@ -40,8 +40,12 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 ### 东东挂机上车
 
 地址：https://www.krystal008.eu.org/
- 
 
+### 一元机场推荐
+
+地址：<a href="http://www.dy01.pw/#/register?code=OdRF9UwQ">一元机场</a>
+
+ 
 ### 赞赏码
 
 ![未命名1673402622](https://user-images.githubusercontent.com/76995206/211700923-39913716-be27-4c26-8831-5dca15ecefc2.png) ![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=wd210010&show_icons=true&theme=radical)
