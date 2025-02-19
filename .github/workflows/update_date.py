@@ -1,16 +1,26 @@
 import json
 from datetime import datetime
 
-# 获取今天的日期
-today_date = datetime.today().strftime('%Y-%m-%d')
+# 获取当前日期
+current_date = datetime.now().strftime('%Y-%m-%d')
 
-# 创建一个字典来存储日期信息
-date_info = {
-    'date': today_date
-}
+# 定义 JSON 文件路径
+json_file = 'date_config.json'
 
-# 将日期数据保存到 JSON 文件中
-with open('date.json', 'w') as f:
-    json.dump(date_info, f, indent=4)
+# 更新 JSON 文件
+def update_json():
+    try:
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {}
 
-print("Date updated.")
+    # 更新日期字段
+    data['date'] = current_date
+
+    # 写回更新后的内容
+    with open(json_file, 'w') as f:
+        json.dump(data, f, indent=4)
+
+if __name__ == '__main__':
+    update_json()
