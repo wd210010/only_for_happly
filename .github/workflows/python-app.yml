@@ -1,0 +1,33 @@
+name: Update Today's Date
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天凌晨 12 点更新一次，调整为你需要的时间间隔
+  workflow_dispatch:  # 手动触发工作流
+
+jobs:
+  update_date:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Run date script
+        run: |
+          python update_date.py  # 确保你的脚本文件名是 update_date.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "Your GitHub Username"
+          git config --global user.email "Your GitHub Email"
+          git add date.json
+          git commit -m "Update today's date"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
