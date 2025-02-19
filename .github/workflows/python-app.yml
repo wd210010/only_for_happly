@@ -2,10 +2,10 @@ name: Update Date
 
 on:
   schedule:
-    - cron: '0 0,8,12,16 * * *'  # 每天午夜 (UTC) 运行一次
+    - cron: '0 0,8,12,16 * * *' 
   push:
     branches:
-      - main  # 也可以在推送到主分支时触发
+      - main  
 
 jobs:
   update-date:
