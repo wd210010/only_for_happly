@@ -2,7 +2,7 @@ name: Update Date
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天午夜 (UTC) 运行一次
+    - cron: '25 13 * * *'  # 每天午夜 (UTC) 运行一次
   push:
     branches:
       - main  # 也可以在推送到主分支时触发
