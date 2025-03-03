@@ -1,0 +1,43 @@
+name: Weather Schedule
+
+# 定义触发条件：每天早上8点UTC时间运行 (你可以根据需要调整时间)
+on:
+  schedule:
+    - cron: '0 8 * * *'  # 使用cron语法，每天8:00 UTC运行
+
+jobs:
+  run-weather-script:
+    runs-on: ubuntu-latest  # 使用最新的Ubuntu环境
+
+    steps:
+      # 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 设置Python环境
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # 指定Python版本，可以根据需要调整
+
+      # 安装依赖（如果有requirements.txt）
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # 运行weather.py并将输出追加到日志文件
+      - name: Run weather.py and log to txt
+        run: |
+          python weather.py >> weather_log.txt 2>&1  # 将标准输出和错误输出追加到weather_log.txt
+
+      # 提交日志文件到仓库
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add weather_log.txt
+          git commit -m "Update weather log - $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用默认的GITHUB_TOKEN
