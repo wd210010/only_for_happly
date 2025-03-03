@@ -3,7 +3,7 @@ name: Weather Schedule
 # 定义触发条件：每天早上8点UTC时间运行 (你可以根据需要调整时间)
 on:
   schedule:
-    - cron: '0 8 * * *'  # 使用cron语法，每天8:00 UTC运行
+    - cron: '0 8,10,15 * * *'  # 使用cron语法，每天8:00 UTC运行
 
 jobs:
   run-weather-script:
