@@ -7,7 +7,7 @@
 # cron "30 7,10 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('值得买每日转盘签到')
 
-import requests, demjson ,re,time,json,os
+import requests, demjson3 ,re,time,json,os
 from datetime import datetime
 
 # 把值得买的cookie放入下面的单引号里面  有几个帐号就弄几个（默认设置了3个 根据自己情况改）
@@ -41,7 +41,7 @@ for i in range(len(zdm_cookie)):
         level = str(re.findall('<img src="https://res.smzdm.com/h5/h5_user/dist/assets/level/(.*?).png\?v=1">', str(response_info), re.S)).replace('[','').replace(']','').replace('\'','')
         gold = str(re.findall('<div class="assets-part assets-gold">\n                    (.*?)</span>', str(response_info), re.S)).replace('[','').replace(']','').replace('\'’','').replace('<span class="assets-part-element assets-num">','').replace('\'','')
         silver = str(re.findall('<div class="assets-part assets-prestige">\n                    (.*?)</span>', str(response_info), re.S)).replace('[','').replace(']','').replace('\'’','').replace('<span class="assets-part-element assets-num">','').replace('\'','')
-        data = demjson.decode(str(response), encoding='utf-8')
+        data = demjson3.decode(str(response), encoding='utf-8')
         a = []
         for j in range(1, 12):
             url2 = f'https://zhiyou.m.smzdm.com/user/exp/ajax_log?page={j}'
