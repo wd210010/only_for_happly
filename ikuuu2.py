@@ -30,7 +30,7 @@ def sign_in(email, passwd):
     try:
         body = {"email" : email,"passwd" : passwd,}
         headers = {'user-agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'}
-        res = requests.get('https://ikuuu.club/', headers=headers)
+        res = requests.get('https://ikuuu.me/', headers=headers)
         url = re.findall('target="_blank">(.*?)</a>', res.text, re.S)
         for i in range(len(url)):
             resp = requests.session()
