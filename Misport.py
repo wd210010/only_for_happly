@@ -2,12 +2,27 @@
 # -- coding: utf-8 -- 
 # -------------------------------
 # @Author : github@wd210010 https://github.com/wd210010/only_for_happly
-# @Time : 2024/05/14 9:23
+# @Time : 2025/06/14 14:23
 # -------------------------------
 # cron "15 20 6,15 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('小米运动')
+#zepplife（原小米运动）注册后绑定支付宝微信同步步数
+#变量为MI_USERS 格式如下 
+# [
+#   {
+#     "phone": "手机号1",
+#     "password": "密码1",
+#     "min_step": 30000,
+#     "max_step": 50000
+#   },
+#   {
+#     "phone": "手机号2",
+#     "password": "密码2",
+#     "min_step": 20000,
+#     "max_step": 22000
+#   }
+# ]  
 
-#变量为misport 分别为手机号-密码-最小步数-最大步数 例子：18888888888-11111111-10000-20000 多号用#分割 zepplife（原小米运动）注册后绑定支付宝微信同步步数
 import random
 import re
 import time,os
