@@ -36,6 +36,9 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 &nbsp;&nbsp;&nbsp;电报频道&nbsp;&nbsp;<a href="https://t.me/wd210010_1"><img alt="Telegram" src="https://img.shields.io/badge/chat-telegram-blue.svg?logo=telegram&style=flat-square"/></a> 
 &nbsp;&nbsp;&nbsp;交流群&nbsp;&nbsp;[![Telegram](https://img.shields.io/static/v1?label=Telegram&message=Chat&color=0088cc)](https://t.me/+XSi9N-Nf3cFhODJl)
 
+### manus自动写脚本 
+
+注册链接 https://manus.im/invitation/V9OIRPDYST3RAF8
 
 ### 东东挂机上车
 
