@@ -2,59 +2,83 @@
 # -- coding: utf-8 --
 # -------------------------------
 # @Author : github@wd210010 https://github.com/wd210010/just_for_happy
-# @Time : 2023/3/27 13:23
+# @Time : 2025/7/22 13:23
 # -------------------------------
 # cron "30 5 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('IKuuu机场签到帐号版')
 
-import requests,re
-
-
-import requests
 import os
-import notify
+import requests
+import json
 
-# export ikuuu='邮箱&密码'      多号#号隔开
+# 从环境变量读取账号信息
+ACCOUNT_STR = os.getenv('ikuuu', '')  # 格式：账号1&密码1#账号2&密码2
 
-def main():
-    r = 1
-    oy = ql_env()
-    print("共找到" + str(len(oy)) + "个账号")
-    for i in oy:
-        print("------------正在执行第" + str(r) + "个账号----------------")
-        email = i.split('&')[0]
-        passwd = i.split('&')[1]
-        sign_in(email, passwd)
-        r += 1
-def sign_in(email, passwd):
+# 解析账号信息
+ACCOUNTS = []
+if ACCOUNT_STR:
+    account_pairs = ACCOUNT_STR.split('#')
+    for pair in account_pairs:
+        if '&' in pair:
+            email, password = pair.split('&', 1)  # 只分割第一个&符号
+            ACCOUNTS.append({"email": email, "password": password})
+
+if not ACCOUNTS:
+    print("未检测到账号信息，请设置环境变量 ikuuu")
+    print('格式示例：export ikuuu="账号1&密码1#账号2&密码2"')
+    exit()
+
+LOGIN_URL = "https://ikuuu.one/auth/login"
+CHECKIN_URL = "https://ikuuu.one/user/checkin"
+
+COMMON_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.36",
+    "X-Requested-With": "XMLHttpRequest"
+}
+
+
+def login_and_checkin(account):
+    """处理单个账号的登录和签到"""
+    session = requests.Session()
+
+    # 登录请求
+    login_data = {
+        "host": "ikuuu.one",
+        "email": account["email"],
+        "passwd": account["password"],
+        "code": ""
+    }
+
+    print(f"\n正在处理账号: {email}")
     try:
-        body = {"email" : email,"passwd" : passwd,}
-        headers = {'user-agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'}
-        res = requests.get('https://ikuuu.club/', headers=headers)
-        url = re.findall('target="_blank">(.*?)</a>', res.text, re.S)
-        for i in range(len(url)):
-            resp = requests.session()
-            resp.post(f'{url[i]}auth/login', headers=headers, data=body)
-            ss = resp.post(f'{url[i]}user/checkin').json()
-    #         print(ss)
-            if 'msg' in ss:
-                print(ss['msg'])
-                notify.send("IKuuu机场签到", ss['msg'])
-                break
-    except:
-        print('请检查帐号配置是否错误')
-        notify.send("IKuuu机场签到", '请检查帐号配置是否错误')
-def ql_env():
-    if "ikuuu" in os.environ:
-        token_list = os.environ['ikuuu'].split('#')
-        if len(token_list) > 0:
-            return token_list
-        else:
-            print("ikuuu变量未启用")
-            sys.exit(1)
-    else:
-        print("未添加ikuuu变量")
-        sys.exit(0)
+        login_response = session.post(LOGIN_URL, data=login_data, headers=COMMON_HEADERS)
+        print(json.loads(login_response.text))
+        if login_response.status_code != 200:
+            print(f"登录失败! 状态码: {login_response.status_code}")
+            return False
 
-if __name__ == '__main__':
-    main()
+        # 签到请求
+        checkin_response = session.post(CHECKIN_URL, headers=COMMON_HEADERS)
+
+        if checkin_response.status_code == 200:
+            response_data = json.loads(checkin_response.text)
+            print(f"签到结果: {response_data.get('msg', '无返回消息')}")
+            return True
+        else:
+            print(f"签到失败! 状态码: {checkin_response.status_code}")
+            return False
+
+    except Exception as e:
+        print(f"处理账号 {email} 时出错: {str(e)}")
+        return False
+
+
+if __name__ == "__main__":
+    print(f"检测到 {len(ACCOUNTS)} 个账号，开始签到...")
+
+    success_count = 0
+    for account in ACCOUNTS:
+        if login_and_checkin(account):
+            success_count += 1
+
+    print(f"\n签到完成! 成功处理 {success_count}/{len(ACCOUNTS)} 个账号")
