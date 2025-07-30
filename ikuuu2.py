@@ -10,6 +10,7 @@
 import os
 import requests
 import json
+from bs4 import BeautifulSoup
 
 # 从环境变量读取账号信息
 ACCOUNT_STR = os.getenv('ikuuu', '')  # 格式：账号1&密码1#账号2&密码2
@@ -28,14 +29,34 @@ if not ACCOUNTS:
     print('格式示例：export ikuuu="账号1&密码1#账号2&密码2"')
     exit()
 
-LOGIN_URL = "https://ikuuu.one/auth/login"
-CHECKIN_URL = "https://ikuuu.one/user/checkin"
+# HTML 内容（实际中可能通过请求获取）
+HTML_CONTENT = requests.get("https://ikuuu.club/").text
+
+def get_latest_domain(html_content):
+    """从 HTML 中提取最新的活跃域名"""
+    soup = BeautifulSoup(html_content, 'html.parser')
+    links = soup.find_all('a', href=True)
+    for link in links:
+        href = link['href']
+        # 确保是活跃的域名（排除注释中的域名）
+        if href.startswith('https://ikuuu.') and link.parent.text.strip() == href:
+            return href.rstrip('/')
+    return None
+
+# 获取最新域名
+DOMAIN = get_latest_domain(HTML_CONTENT)
+if not DOMAIN:
+    print("无法获取最新域名!")
+    exit()
+
+# 更新 URLs
+LOGIN_URL = f"{DOMAIN}/auth/login"
+CHECKIN_URL = f"{DOMAIN}/user/checkin"
 
 COMMON_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.36",
     "X-Requested-With": "XMLHttpRequest"
 }
-
 
 def login_and_checkin(account):
     """处理单个账号的登录和签到"""
@@ -43,16 +64,16 @@ def login_and_checkin(account):
 
     # 登录请求
     login_data = {
-        "host": "ikuuu.one",
+        "host": DOMAIN.replace('https://', ''),
         "email": account["email"],
         "passwd": account["password"],
         "code": ""
     }
 
-    print(f"\n正在处理账号: {email}")
+    print(f"\n正在处理账号: {account['email']}，使用域名: {DOMAIN}")
     try:
         login_response = session.post(LOGIN_URL, data=login_data, headers=COMMON_HEADERS)
-        print(json.loads(login_response.text))
+        print(json.loads(login_response.text)['msg'])
         if login_response.status_code != 200:
             print(f"登录失败! 状态码: {login_response.status_code}")
             return False
@@ -69,9 +90,8 @@ def login_and_checkin(account):
             return False
 
     except Exception as e:
-        print(f"处理账号 {email} 时出错: {str(e)}")
+        print(f"处理账号 {account['email']} 时出错: {str(e)}")
         return False
-
 
 if __name__ == "__main__":
     print(f"检测到 {len(ACCOUNTS)} 个账号，开始签到...")
