@@ -4,7 +4,7 @@
 # -------------------------------
 # cron "30 8 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('福彩活动');
-# 活动地址:
+# 活动地址:https://github.com/wd210010/only_for_happly/blob/main/fc.jpg 扫码参加
 # 变量名fcau  抓取https://ulxhh25-serv.cwlo.com.cn这个域名下的Authorization 如果填配置文件就用&隔开 或者一个个的加入环境变量
 
 import requests
