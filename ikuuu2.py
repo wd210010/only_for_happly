@@ -2,19 +2,44 @@
 # -- coding: utf-8 --
 # -------------------------------
 # @Author : github@wd210010 https://github.com/wd210010/just_for_happy
-# @Time : 2025/7/22 13:23
+# @UpdateTime : 2025/8/18 09:04
 # -------------------------------
 # cron "30 5 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('IKuuu机场签到帐号版')
 
 import os
+import re
+import random
 import requests
 import json
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+def extract_and_select_url():
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.get("http://ikuuu.club")
+
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    driver.quit()
+
+    text_content = soup.get_text()
+    urls = re.findall(r'ikuuu\.[a-zA-Z0-9]+\b', text_content)
+
+    if urls:
+        unique_urls = list(set(urls))
+        selected_url = random.choice(unique_urls)
+        return selected_url
+    else:
+        return "未找到网址"
+
 
 # 从环境变量读取账号信息
 ACCOUNT_STR = os.getenv('ikuuu', '')  # 格式：账号1&密码1#账号2&密码2
-
 # 解析账号信息
 ACCOUNTS = []
 if ACCOUNT_STR:
@@ -29,29 +54,11 @@ if not ACCOUNTS:
     print('格式示例：export ikuuu="账号1&密码1#账号2&密码2"')
     exit()
 
-# HTML 内容（实际中可能通过请求获取）
-HTML_CONTENT = requests.get("https://ikuuu.club/").text
-
-def get_latest_domain(html_content):
-    """从 HTML 中提取最新的活跃域名"""
-    soup = BeautifulSoup(html_content, 'html.parser')
-    links = soup.find_all('a', href=True)
-    for link in links:
-        href = link['href']
-        # 确保是活跃的域名（排除注释中的域名）
-        if href.startswith('https://ikuuu.') and link.parent.text.strip() == href:
-            return href.rstrip('/')
-    return None
-
-# 获取最新域名
-DOMAIN = get_latest_domain(HTML_CONTENT)
-if not DOMAIN:
-    print("无法获取最新域名!")
-    exit()
+DOMAIN= extract_and_select_url()
 
 # 更新 URLs
-LOGIN_URL = f"{DOMAIN}/auth/login"
-CHECKIN_URL = f"{DOMAIN}/user/checkin"
+LOGIN_URL = f"https://{DOMAIN}/auth/login"
+CHECKIN_URL = f"https://{DOMAIN}/user/checkin"
 
 COMMON_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.36",
@@ -70,7 +77,7 @@ def login_and_checkin(account):
         "code": ""
     }
 
-    print(f"\n正在处理账号: {account['email']}，使用域名: {DOMAIN}")
+    print(f"正在处理账号: {account['email']}，使用域名: {DOMAIN}")
     try:
         login_response = session.post(LOGIN_URL, data=login_data, headers=COMMON_HEADERS)
         print(json.loads(login_response.text)['msg'])
