@@ -2,10 +2,14 @@
 # -- coding: utf-8 --
 # -------------------------------
 # @Author : github@wd210010 https://github.com/wd210010/just_for_happy
-# @UpdateTime : 2025/8/18 09:04
+# @Time : 2025/7/22 13:23
 # -------------------------------
 # cron "30 5 * * *" script-path=xxx.py,tag=匹配cron用
 # const $ = new Env('IKuuu机场签到帐号版')
+# 进入青龙容器 
+# docker exec -it qinglong bash
+# apk update
+# apk add chromium chromium-chromedriver
 
 import os
 import re
@@ -13,17 +17,24 @@ import random
 import requests
 import json
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+import undetected_chromedriver as uc   # 使用 uc 避免手动管理 chromedriver
 
 def extract_and_select_url():
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.get("http://ikuuu.club")
+    """提取 ikuuu 的可用域名"""
+    options = uc.ChromeOptions()
+    options.add_argument("--headless")          # 无界面模式
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-software-rasterizer")
 
+    # 关键：指定 chromium 的路径（Alpine 容器安装后在这里）
+    options.binary_location = "/usr/bin/chromium-browser"
+
+    # 如果你安装了 chromium-chromedriver，可以指定 driver_executable_path
+    driver = uc.Chrome(options=options, driver_executable_path="/usr/bin/chromedriver")
+
+    driver.get("http://ikuuu.club")
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     driver.quit()
 
@@ -40,6 +51,7 @@ def extract_and_select_url():
 
 # 从环境变量读取账号信息
 ACCOUNT_STR = os.getenv('ikuuu', '')  # 格式：账号1&密码1#账号2&密码2
+
 # 解析账号信息
 ACCOUNTS = []
 if ACCOUNT_STR:
@@ -54,7 +66,7 @@ if not ACCOUNTS:
     print('格式示例：export ikuuu="账号1&密码1#账号2&密码2"')
     exit()
 
-DOMAIN= extract_and_select_url()
+DOMAIN = extract_and_select_url()
 
 # 更新 URLs
 LOGIN_URL = f"https://{DOMAIN}/auth/login"
@@ -99,6 +111,7 @@ def login_and_checkin(account):
     except Exception as e:
         print(f"处理账号 {account['email']} 时出错: {str(e)}")
         return False
+
 
 if __name__ == "__main__":
     print(f"检测到 {len(ACCOUNTS)} 个账号，开始签到...")
