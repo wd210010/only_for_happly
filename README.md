@@ -46,7 +46,7 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 
 ### 一元机场推荐
 
-地址：<a href="https://a.mfaa.me/#/register?code=OdRF9UwQ">一元机场 1元5G</a>
+地址：<a href="[https://a.mfaa.me/#/register?code=OdRF9UwQ](https://yg2.111728.xyz/#/register?code=OdRF9Uw)">一元机场 1元5G</a>
 
  
 ### 赞赏码
