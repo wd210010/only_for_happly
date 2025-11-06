@@ -773,12 +773,25 @@ class RUN:
         pass
 
 def get_quarter_end_date():
-    """计算当前季度结束日期"""
+    """计算当前季度结束日期（正确版）"""
     current_date = datetime.now()
-    current_month = current_date.month
-    current_year = current_date.year
-    next_quarter_first_day = datetime(current_year, ((current_month - 1) // 3 + 1) * 3 + 1, 1)
-    return next_quarter_first_day - timedelta(days=1)
+    year = current_date.year
+    month = current_date.month
+
+    # 确定当前季度的最后一个月
+    quarter_end_month = ((month - 1) // 3 + 1) * 3  # 3,6,9,12
+
+    # 构造该季度最后一天
+    if quarter_end_month > 12:
+        quarter_end_month = 12
+
+    # 构造下一季度第一天，再减一天
+    if quarter_end_month == 12:
+        next_quarter_first = datetime(year + 1, 1, 1)
+    else:
+        next_quarter_first = datetime(year, quarter_end_month + 1, 1)
+
+    return next_quarter_first - timedelta(days=1)
 
 if __name__ == '__main__':
     """主程序入口"""
