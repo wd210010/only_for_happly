@@ -10,23 +10,23 @@ jobs:
       - name: 拉取仓库代码
         uses: actions/checkout@v4
         with:
-          persist-credentials: false  # 禁用默认凭据，避免冲突
-          fetch-depth: 0  # 拉取完整历史，确保能推送
+          persist-credentials: false  # 禁用默认凭据，使用我们的 PAT
+          fetch-depth: 0  # 拉取完整历史
 
       - name: 修改 README 日期
         run: |
           CURRENT_DATE=$(date +"%Y-%m-%d")
-          # 适配换行的 sed 命令，确保匹配占位符
+          # 确保匹配占位符（README 里的占位符必须和下面一致）
           sed -z -i "s/<!-- 自动更新日期：开始 -->\n.*\n<!-- 自动更新日期：结束 -->/<!-- 自动更新日期：开始 -->\n最后更新时间：$CURRENT_DATE\n<!-- 自动更新日期：结束 -->/g" README.md
 
-      - name: 配置 Git 身份（必须步骤）
+      - name: 配置 Git 身份
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: 提交并推送修改
         run: |
-          # 检查 README 是否有修改
+          # 检查是否有修改
           if git diff --quiet README.md; then
             echo "README 日期已最新，无需提交"
             exit 0
@@ -34,7 +34,7 @@ jobs:
           # 提交修改
           git add README.md
           git commit -m "自动更新 README 日期至 $(date +'%Y-%m-%d')"
-          # 用 GITHUB_TOKEN 授权推送（关键：避免用户名密码输入）
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+          # 用个人 PAT 授权推送（关键修改：替换为 MY_GITHUB_TOKEN）
+          git push https://x-access-token:${{ secrets.MY_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
