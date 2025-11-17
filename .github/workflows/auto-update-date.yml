@@ -1,24 +1,27 @@
 name: 自动更新 README 日期
 on:
   schedule:
-    - cron: '0 16 * * *'  # UTC 时间，北京时间需 +8 小时
-  workflow_dispatch:
+    - cron: '0 16 * * *'  # UTC 时间，北京时间 00:00 更新（可调整）
+  workflow_dispatch:  # 允许手动触发测试
 jobs:
   update-date:
     runs-on: ubuntu-latest
     steps:
-      - name:  checkout 代码
+      - name: 拉取仓库代码
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          persist-credentials: false  # 禁用默认凭据，用 GITHUB_TOKEN 授权
+      
       - name: 修改 README 日期
         run: |
           CURRENT_DATE=$(date +"%Y-%m-%d")
-          sed -i "s/<!-- 自动更新日期：开始 -->.*<!-- 自动更新日期：结束 -->/<!-- 自动更新日期：开始 -->\n最后更新时间：$CURRENT_DATE\n<!-- 自动更新日期：结束 -->/g" README.md
+          # 适配换行的 sed 命令，确保匹配占位符
+          sed -z -i "s/<!-- 自动更新日期：开始 -->\n.*\n<!-- 自动更新日期：结束 -->/<!-- 自动更新日期：开始 -->\n最后更新时间：$CURRENT_DATE\n<!-- 自动更新日期：结束 -->/g" README.md
+      
       - name: 提交并推送修改
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "自动更新 README 日期至 ${CURRENT_DATE}"
-          file_pattern: README.md
+          commit_message: "自动更新 README 日期至 $(date +'%Y-%m-%d')"
+          file_pattern: README.md  # 只提交 README 的修改
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 内置令牌，无需手动配置
