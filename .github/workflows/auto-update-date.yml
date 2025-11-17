@@ -1,45 +1,24 @@
-# 工作流名称（可自定义）
 name: 自动更新 README 日期
-
-# 触发条件：1. 每天定时执行；2. 手动触发（可选，方便测试）
 on:
-  # 定时触发（UTC 时间，转换为北京时间需 +8 小时）
   schedule:
-    # 格式：分 时 日 月 周（* 表示任意）
-    # 下面表示 UTC 时间每天 16:00 → 北京时间每天 00:00（可根据需求调整）
-    - cron: '0 16 * * *'
-  # 手动触发（在 GitHub 仓库的 Actions 页面可点击运行）
+    - cron: '0 16 * * *'  # UTC 时间，北京时间需 +8 小时
   workflow_dispatch:
-
-# 执行的任务
 jobs:
   update-date:
-    # 运行环境（选 Ubuntu 最稳定）
     runs-on: ubuntu-latest
     steps:
-      # 步骤 1：拉取当前仓库代码
       - name:  checkout 代码
         uses: actions/checkout@v4
         with:
-          # 必须设置为 true，否则无法推送提交
           persist-credentials: false
-
-      # 步骤 2：运行脚本修改 README 中的日期
       - name: 修改 README 日期
         run: |
-          # 获取当前日期（格式：年-月-日，如 2025-11-17）
           CURRENT_DATE=$(date +"%Y-%m-%d")
-          # 替换 README 中占位符之间的日期（sed 命令：精准替换注释包裹的内容）
           sed -i "s/<!-- 自动更新日期：开始 -->.*<!-- 自动更新日期：结束 -->/<!-- 自动更新日期：开始 -->\n最后更新时间：$CURRENT_DATE\n<!-- 自动更新日期：结束 -->/g" README.md
-
-      # 步骤 3：提交修改并推送到 GitHub
       - name: 提交并推送修改
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          # 提交信息（可自定义）
-          commit_message: "自动更新 README 最后更新日期至 ${{ github.event.head_commit.timestamp && (github.event.head_commit.timestamp | todate('YYYY-MM-DD')) || format('now', 'YYYY-MM-DD') }}"
-          # 仅提交 README.md（避免意外提交其他文件）
+          commit_message: "自动更新 README 日期至 ${CURRENT_DATE}"
           file_pattern: README.md
         env:
-          # 授权 Actions 推送代码（使用 GitHub 内置令牌，无需手动配置）
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
