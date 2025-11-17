@@ -10,18 +10,19 @@ jobs:
       - name: 拉取仓库代码
         uses: actions/checkout@v4
         with:
-          persist-credentials: false  # 禁用默认凭据，用 GITHUB_TOKEN 授权
-      
+          persist-credentials: false
+          token: ${{ secrets.GITHUB_TOKEN }}  # 启用写入权限
+
       - name: 修改 README 日期
         run: |
           CURRENT_DATE=$(date +"%Y-%m-%d")
-          # 适配换行的 sed 命令，确保匹配占位符
           sed -z -i "s/<!-- 自动更新日期：开始 -->\n.*\n<!-- 自动更新日期：结束 -->/<!-- 自动更新日期：开始 -->\n最后更新时间：$CURRENT_DATE\n<!-- 自动更新日期：结束 -->/g" README.md
-      
+
       - name: 提交并推送修改
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "自动更新 README 日期至 $(date +'%Y-%m-%d')"
-          file_pattern: README.md  # 只提交 README 的修改
+          file_pattern: README.md
+          branch: main  # 替换为你的仓库默认分支（如 main/master）
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 内置令牌，无需手动配置
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
