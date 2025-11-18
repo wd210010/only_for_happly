@@ -1,7 +1,7 @@
 name: 自动更新 README 日期
 on:
   schedule:
-    - cron: '0 8,16 * * *'  # UTC 时间，北京时间 00:00 更新（可调整）
+    - cron: '0 9 * * *'  # UTC 时间，北京时间 00:00 更新（可调整）
   workflow_dispatch:  # 允许手动触发测试
 jobs:
   update-date:
