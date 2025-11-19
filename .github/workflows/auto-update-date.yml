@@ -1,8 +1,12 @@
 name: 自动更新 README 日期
 on:
   schedule:
-    - cron: '0 9 * * *'  # UTC 时间，北京时间 00:00 更新（可调整）
+    # 定时任务 1：北京时间每天 08:00（UTC 00:00）
+    - cron: '0 0 * * *'
+    # 定时任务 2：北京时间每天 15:00（UTC 07:00）
+    - cron: '0 7 * * *'
   workflow_dispatch:  # 允许手动触发测试
+
 jobs:
   update-date:
     runs-on: ubuntu-latest
@@ -10,13 +14,13 @@ jobs:
       - name: 拉取仓库代码
         uses: actions/checkout@v4
         with:
-          persist-credentials: false  # 禁用默认凭据，使用我们的 PAT
-          fetch-depth: 0  # 拉取完整历史
+          persist-credentials: false
+          fetch-depth: 0
 
       - name: 修改 README 日期
         run: |
           CURRENT_DATE=$(date +"%Y-%m-%d")
-          # 确保匹配占位符（README 里的占位符必须和下面一致）
+          # 确保匹配 README 中的占位符（必须完全一致）
           sed -z -i "s/<!-- 自动更新日期：开始 -->\n.*\n<!-- 自动更新日期：结束 -->/<!-- 自动更新日期：开始 -->\n最后更新时间：$CURRENT_DATE\n<!-- 自动更新日期：结束 -->/g" README.md
 
       - name: 配置 Git 身份
@@ -26,15 +30,14 @@ jobs:
 
       - name: 提交并推送修改
         run: |
-          # 检查是否有修改
+          # 检查 README 是否有修改（避免重复提交）
           if git diff --quiet README.md; then
             echo "README 日期已最新，无需提交"
             exit 0
           fi
-          # 提交修改
           git add README.md
           git commit -m "自动更新 README 日期至 $(date +'%Y-%m-%d')"
-          # 用个人 PAT 授权推送（关键修改：替换为 MY_GITHUB_TOKEN）
+          # 用个人 PAT 推送（已配置 MY_GITHUB_TOKEN 密钥）
           git push https://x-access-token:${{ secrets.MY_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
         env:
           MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
