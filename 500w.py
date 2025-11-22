@@ -1,121 +1,176 @@
+# -*- coding: utf-8 -*-
+"""
+双色球守号检测 + 冷号机选 + 企业微信&PushPlus 双推送（已加开奖日期）
+"""
+
 import requests
 import random
-import os
-import json
+import logging
+from datetime import datetime
 from collections import Counter
-from notification import Push
 
-# --- Constants ---
-MAX_RED_BALL = 33
-MAX_BLUE_BALL = 16
-NUM_LOW_FREQ_RED_CANDIDATES = 10
-NUM_LOW_FREQ_BLUE_CANDIDATES = 5
-NUM_SELECTED_RED_BALLS = 6
-NUM_SELECTED_BLUE_BALLS = 1
-NUM_GENERATED_LOTTERIES = 2
-
-API_URL = 'https://ms.zhcw.com/proxy/lottery-chart-center/history/SSQ'
-
-def get_lottery_history():
-    """获取双色球历史数据"""
-    headers = {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
+# ====================== 配置区 ======================
+CONFIG = {
+    "weixin": {
+        "corpid": "",         # 企业ID
+        "corpsecret": "",     # 应用Secret
+        "touser": "@all",     # @all 或具体成员
+        "agentid": ""         # 应用ID（字符串）
+    },
+    "pushplus": {
+        "token": "你的PushPlus token"   # 必填
     }
-    data = {
-        "limit": 200,
-        "page": 1,
-        "params": {}
-    }
+}
+
+# 你守的2注
+FIXED_TICKETS = [
+    {"red": [2, 15, 20, 21, 24, 26], "blue": 1},
+    {"red": [3, 4, 11, 17, 23, 30], "blue": 6}
+]
+
+NUM_GENERATED = 2
+HISTORY_LIMIT = 100
+
+API_URL = "https://ms.zhcw.com/proxy/lottery-chart-center/history/SSQ"
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# ====================== 推送函数 ======================
+def push_notification(contents: str):
+    try:
+        logger.info("开始发送推送通知")
+
+        # 企业微信
+        if all(CONFIG['weixin'].values()):
+            token_resp = requests.get(
+                f"https://qyapi.weixin.qq.com/cgi-bin/gettoken?"
+                f"corpid={CONFIG['weixin']['corpid']}&corpsecret={CONFIG['weixin']['corpsecret']}",
+                timeout=10
+            ).json()
+            if token_resp.get('errcode') == 0:
+                token = token_resp['access_token']
+                payload = {
+                    "touser": CONFIG['weixin']['touser'],
+                    "msgtype": "text",
+                    "agentid": CONFIG['weixin']['agentid'],
+                    "text": {"content": "双色球开奖通知\n" + contents}
+                }
+                resp = requests.post(
+                    f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={token}",
+                    json=payload, timeout=10
+                ).json()
+                logger.info("企业微信推送成功" if resp['errmsg'] == 'ok' else f"企业微信失败: {resp}")
+
+        # PushPlus
+        if CONFIG['pushplus']['token']:
+            payload = {
+                "token": CONFIG['pushplus']['token'],
+                "title": "双色球开奖通知",
+                "content": contents.replace('\n', '<br>'),
+                "template": "html"
+            }
+            resp = requests.post("http://www.pushplus.plus/send", json=payload, timeout=10).json()
+            logger.info("PushPlus推送成功" if resp['code'] == 200 else f"PushPlus失败: {resp}")
+
+        logger.info("所有推送完成")
+    except Exception as e:
+        logger.error(f"推送异常: {e}")
+
+# ====================== 数据获取 ======================
+def get_latest_and_history():
+    headers = {"Content-Type": "application/json",
+               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    payload = {"limit": HISTORY_LIMIT, "page": 1, "params": {}}
 
     try:
-        resp = requests.post(API_URL, headers=headers, data=json.dumps(data))
-        resp.raise_for_status()  # 检查HTTP状态码，如果不是200，则抛出异常
-        json_data = resp.json()
-        history_data = json_data.get('datas')
+        resp = requests.post(API_URL, headers=headers, json=payload, timeout=15)
+        resp.raise_for_status()
+        datas = resp.json()["datas"]
+        latest = datas[0]
 
-        if history_data is None:
-            print("API响应中缺少 'datas' 键。")
-            return None, None
+        red_str = latest["winningFrontNum"]
+        blue_str = latest["winningBackNum"]
+        period = latest.get("issue", "未知")
+        date = latest.get("openDate", "")[:10]   # 开奖日期
 
-        red_ball_history = []
-        blue_ball_history = []
-        for entry in history_data:
-            red_ball_history.append(entry['winningFrontNum'].split(' '))
-            blue_ball_history.append(entry['winningBackNum'])
-        return red_ball_history, blue_ball_history
+        latest_red = sorted(int(x) for x in red_str.split())
+        latest_blue = int(blue_str)
 
-    except requests.exceptions.RequestException as e:
-        print(f"API请求失败: {e}")
-        return None, None
-    except json.JSONDecodeError as e:
-        print(f"JSON解析失败: {e}")
-        return None, None
-    except KeyError as e:
-        print(f"API响应缺少关键字段: {e}")
-        return None, None
+        red_hist = [entry["winningFrontNum"].split() for entry in datas]
+        blue_hist = [int(entry["winningBackNum"]) for entry in datas]
 
-def find_all_indices(lst, target):
-    """查找列表中所有目标值的索引"""
-    indices = []
-    for i, value in enumerate(lst):
-        if value == target:
-            indices.append(i)
-    return indices
+        return {
+            "period": period,
+            "date": date,
+            "red": latest_red,
+            "blue": latest_blue
+        }, red_hist, blue_hist
 
-def generate_lottery_numbers(red_ball_history, blue_ball_history):
-    """根据历史数据生成双色球号码"""
-    # 统计红球出现次数
-    all_red_balls_flat = [int(num) for sublist in red_ball_history for num in sublist]
-    red_ball_counts = Counter(all_red_balls_flat)
+    except Exception as e:
+        logger.error(f"获取开奖数据失败: {e}")
+        return None, None, None
 
-    # 统计蓝球出现次数
-    blue_ball_counts = Counter([int(num) for num in blue_ball_history])
+# ====================== 中奖判断 & 冷号机选 ======================
+def check_prize(tr, tb, wr, wb):
+    rh = len(set(tr) & set(wr))
+    bh = 1 if tb == wb else 0
+    if rh == 6 and bh: return "★★★★★ 一等奖 5亿到手！！！ ★★★★★"
+    if rh == 6: return "二等奖！已经起飞！"
+    if rh == 5 and bh: return "三等奖！赚大了！"
+    if rh == 5 or (rh == 4 and bh): return "四等奖"
+    if rh == 4 or (rh == 3 and bh): return "五等奖"
+    if bh: return "六等奖（蓝球中）"
+    return "未中奖，继续守号~"
 
-    # 获取出现次数最少的红球号码作为候选
-    sorted_red_counts = sorted(red_ball_counts.items(), key=lambda item: item[1])
-    candidate_red_balls = []
-    for i in range(min(NUM_LOW_FREQ_RED_CANDIDATES, len(sorted_red_counts))):
-        candidate_red_balls.append(sorted_red_counts[i][0])
-    # 确保候选红球数量足够，如果不够则补充
-    if len(candidate_red_balls) < NUM_SELECTED_RED_BALLS:
-        # 从所有红球中随机补充
-        remaining_red_balls = list(set(range(1, MAX_RED_BALL + 1)) - set(candidate_red_balls))
-        candidate_red_balls.extend(random.sample(remaining_red_balls, NUM_SELECTED_RED_BALLS - len(candidate_red_balls)))
+def generate_cold(red_hist, blue_hist):
+    red_all = [int(n) for sub in red_hist for n in sub]
+    red_c = Counter(red_all)
+    blue_c = Counter(blue_hist)
 
-    # 获取出现次数最少的蓝球号码作为候选
-    sorted_blue_counts = sorted(blue_ball_counts.items(), key=lambda item: item[1])
-    candidate_blue_balls = []
-    for i in range(min(NUM_LOW_FREQ_BLUE_CANDIDATES, len(sorted_blue_counts))):
-        candidate_blue_balls.append(sorted_blue_counts[i][0])
-    # 确保候选蓝球数量足够，如果不够则补充
-    if len(candidate_blue_balls) < NUM_SELECTED_BLUE_BALLS:
-        # 从所有蓝球中随机补充
-        remaining_blue_balls = list(set(range(1, MAX_BLUE_BALL + 1)) - set(candidate_blue_balls))
-        candidate_blue_balls.extend(random.sample(remaining_blue_balls, NUM_SELECTED_BLUE_BALLS - len(candidate_blue_balls)))
+    cold_red = [n for n, _ in sorted(red_c.items(), key=lambda x: x[1])[:18]]
+    cold_blue = [n for n, _ in sorted(blue_c.items(), key=lambda x: x[1])[:10]]
 
-    selected_red_balls = sorted(random.sample(list(set(candidate_red_balls)), NUM_SELECTED_RED_BALLS))
-    selected_blue_ball = sorted(random.sample(list(set(candidate_blue_balls)), NUM_SELECTED_BLUE_BALLS))[0]
+    reds = sorted(random.sample(cold_red if len(cold_red) >= 6 else list(range(1,34)), 6))
+    blue = random.choice(cold_blue if cold_blue else list(range(1,17)))
+    return reds, blue
 
-    return selected_red_balls, selected_blue_ball
-
+# ====================== 主程序 ======================
 def main():
-    red_history, blue_history = get_lottery_history()
-    if not red_history or not blue_history:
-        print("未能获取历史数据，退出。")
+    print(f"\n{'='*30} 双色球监测+机选 {datetime.now().strftime('%Y-%m-%d %H:%M')} {'='*30}")
+
+    result, r_hist, b_hist = get_latest_and_history()
+    if not result:
+        push_notification("【双色球】获取最新开奖数据失败，请检查网络或接口")
         return
 
-    messages = []
-    print(f"为你生成{NUM_GENERATED_LOTTERIES}注双色球号码如下")
-    for _ in range(NUM_GENERATED_LOTTERIES):
-        red_balls, blue_ball = generate_lottery_numbers(red_history, blue_history)
-        messages.append(f"{red_balls} - {blue_ball}")
+    # 这里把开奖日期加进去了
+    lines = [
+        f"双色球 {result['period']} 已开奖！",
+        f"开奖日期：{result['date']}",          # ← 新增这一行
+        f"开奖号码：{' '.join(f'{x:02d}' for x in result['red'])} + {result['blue']:02d}",
+        ""
+    ]
 
-    formatted_message = "\n".join(messages)
-    print(formatted_message)
-    Push(title='双色球2注', contents=formatted_message)
+    # 守号检测
+    for i, t in enumerate(FIXED_TICKETS, 1):
+        prize = check_prize(t["red"], t["blue"], result["red"], result["blue"])
+        rs = ' '.join(f'{x:02d}' for x in sorted(t["red"]))
+        print(f"守号第{i}注：{rs} + {t['blue']:02d} → {prize}")
+        lines.append(f"守号第{i}注：{rs} + {t['blue']:02d}")
+        lines.append(f"   → {prize}")
+        lines.append("")
 
-if __name__ == '__main__':
+    # 冷号机选
+    lines.append("今日冷号机选推荐：")
+    for i in range(NUM_GENERATED):
+        r, b = generate_cold(r_hist, b_hist)
+        rs = ' '.join(f'{x:02d}' for x in r)
+        print(f"机选第{i+1}注：{rs} + {b:02d}")
+        lines.append(f"{rs} + {b:02d}")
+
+    push_notification("\n".join(lines))
+    print("\n推送已发送（含开奖日期），祝好运连连！")
+
+if __name__ == "__main__":
     main()
-
-
