@@ -636,6 +636,9 @@ class RUN:
 
     def member_day_finish_task(self, task):
         """完成会员日任务"""
+        task_code = task.get("taskCode")
+        if not task_code:
+            return
         payload = {'taskCode': task['taskCode']}
         url = 'https://mcs-mimp-web.sf-express.com/mcs-mimp/commonPost/~memberEs~taskRecord~finishTask'
         response = self.do_request(url, data=payload)
