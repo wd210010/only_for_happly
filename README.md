@@ -43,7 +43,7 @@ ql repo https://ghproxy.com/https://github.com/wd210010/only_for_happly.git "" "
 
 ### 一元机场推荐
 
-地址：<a href="http://s.b6v.cn/eHY6P">0元机场</a>
+地址：<a href="http://s.b6v.cn/eHY6P">1元机场</a>
 
  
 ### 赞赏码
