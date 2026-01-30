@@ -5,352 +5,223 @@ import time
 import re
 import random
 from collections import defaultdict
-from typing import Dict, List, Optional, Any, Tuple
 from notify import send
 
-# ==================== 配置项 ====================
-# 环境变量名称 抓包小程序wid即可
-ENV_KEY = "TYQH"
-# 请求超时时间（秒）
-REQUEST_TIMEOUT = 15
-# 基础等待时间范围（秒）
-BASE_WAIT_RANGE = (4, 5)
-# 账号间等待时间（秒）
-ACCOUNT_INTERVAL = 3
-# 浇水最大重试次数
-WATER_MAX_RETRY = 3
-# API基础配置
-API_BASE_URL = "https://api.zhumanito.cn/api"
-# User-Agent配置
-USER_AGENT = (
-    "Mozilla/5.0 (Linux; Android 14; 23046RP50C Build/UKQ1.230804.001; wv) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/142.0.7444.172 "
-    "Safari/537.36 XWEB/1420045 MMWEBSDK/20250201 MMWEBID/5714 "
-    "MicroMessenger/8.0.57.2820(0x28003956) WeChat/arm64 Weixin Android Tablet "
-    "NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx532ecb3bdaaf92f9"
-)
+# 环境变量格式改为 wid1@手机号1&wid2@手机号2
+users = os.getenv("TYQH", "").split("&")
+users = [user.strip() for user in users if user.strip()]
+# 解析为 (wid, 手机号) 列表
+parsed_users = []
+for user_str in users:
+    if "@" in user_str:
+        wid, phone = user_str.split("@", 1)
+        parsed_users.append((wid.strip(), phone.strip()))
+    else:
+        # 兼容旧格式（无手机号时跳过登录）
+        parsed_users.append((user_str.strip(), ""))
 
-# 步骤配置
-STEP_CONFIG = {
-    "login": {"name": "登录", "emoji": "🔑"},
-    "get_seeds": {"name": "领取种子", "emoji": "🌱"},
-    "check_in": {"name": "签到", "emoji": "📅"},
-    "explore": {"name": "浏览任务", "emoji": "🔍"},
-    "harvest": {"name": "收获作物", "emoji": "🌾"},
-    "plant_seed": {"name": "播种", "emoji": "🌱"},
-    "watering": {"name": "循环浇水", "emoji": "🔄"},
-    "info": {"name": "信息", "emoji": "•"}
-}
-STEP_ORDER = [v["name"] for k, v in STEP_CONFIG.items() if k != "info"] + [STEP_CONFIG["info"]["name"]]
+# UA可自行替换为自己的
+user_agent = "Mozilla/5.0 (Linux; Android 14; 23046RP50C Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/142.0.7444.172 Safari/537.36 XWEB/1420045 MMWEBSDK/20250201 MMWEBID/5714 MicroMessenger/8.0.57.2820(0x28003956) WeChat/arm64 Weixin Android Tablet NetType/WIFI Language/zh_CN ABI/arm64 miniProgram/wx532ecb3bdaaf92f9"
+STEP_ORDER = ["登录", "领取种子", "签到", "浏览任务", "收获作物", "播种", "循环浇水"]
+STEP_EMOJI = {"登录": "🔑", "领取种子": "🌱", "签到": "📅", "浏览任务": "🔍", "收获作物": "🌾", "播种": "🌱", "循环浇水": "🔄"}
 
-# 状态图标
-STATUS_ICONS = {
-    "success": "✅",
-    "warning": "⚠️",
-    "error": "❌",
-    "info": "ℹ️"
-}
+def _short(s, n=120):
+    s = s.strip()
+    return s if len(s) <= n else s[:n - 1] + "…"
 
-# ==================== 工具函数 ====================
-def short_text(text: str, max_length: int = 120) -> str:
-    """截断文本并添加省略号"""
-    text = text.strip()
-    return text if len(text) <= max_length else f"{text[:max_length-1]}…"
+def _pick_status(line: str) -> str:
+    if "✅" in line: return "✅"
+    if "⚠️" in line: return "⚠️"
+    if "❌" in line: return "❌"
+    return "ℹ️"
 
-def extract_status(text: str) -> str:
-    """提取状态图标"""
-    if STATUS_ICONS["success"] in text:
-        return STATUS_ICONS["success"]
-    elif STATUS_ICONS["warning"] in text:
-        return STATUS_ICONS["warning"]
-    elif STATUS_ICONS["error"] in text:
-        return STATUS_ICONS["error"]
-    return STATUS_ICONS["info"]
+def _step_key(line: str) -> str:
+    for k in STEP_ORDER:
+        if k in line:
+            return k
+    return "信息"
 
-def get_step_key(text: str) -> str:
-    """获取步骤名称"""
-    for step_name in STEP_ORDER:
-        if step_name in text:
-            return step_name
-    return STEP_CONFIG["info"]["name"]
-
-def extract_resource_snapshot(lines: List[str]) -> Dict[str, int]:
-    """提取资源快照（阳光、水、番茄）"""
-    resources = {}
-    patterns = {
-        "sun": r"☀️(\d+)",
-        "water": r"💧(\d+)",
-        "fruit": r"🍅(\d+)"
-    }
-    
+def _pull_resource_snapshot(lines):
+    res = {}
     for line in reversed(lines):
-        for res_type, pattern in patterns.items():
-            if res_type in resources:
-                continue
-                
-            match = re.search(pattern, line)
-            if match:
-                try:
-                    resources[res_type] = int(match.group(1))
-                except (ValueError, IndexError):
-                    pass
-        
-        if len(resources) >= 2:
+        if "☀️" in line:
+            try: res["sun"] = int(re.findall(r"☀️(\d+)", line)[0])
+            except: pass
+        if "💧" in line:
+            try: res["water"] = int(re.findall(r"💧(\d+)", line)[0])
+            except: pass
+        if "🍅" in line:
+            try: res["fruit"] = int(re.findall(r"🍅(\d+)", line)[0])
+            except: pass
+        if len(res) >= 2:
             break
-    
-    return resources
+    return res
 
-def render_report(all_lines: List[str]) -> str:
-    """渲染执行报告"""
-    # 按用户分组
-    blocks = []
-    current_block = []
-    
-    for line in all_lines:
-        if line.strip().startswith("👤 用户"):
-            if current_block:
-                blocks.append(current_block)
-            current_block = [line.strip()]
-        elif line is not None and line.strip():
-            current_block.append(line.rstrip())
-    
-    if current_block:
-        blocks.append(current_block)
-    
-    # 生成报告内容
-    report_lines = []
-    for block in blocks:
-        if not block:
-            continue
-            
-        # 添加分隔线和用户信息
-        report_lines.append("━━━━━━━━━━━━━━━━━━━━━━━━")
-        report_lines.append(block[0])
-        
-        # 按步骤分类日志
-        step_buckets = defaultdict(list)
-        for line in block[1:]:
-            step_key = get_step_key(line)
-            step_buckets[step_key].append(line)
-        
-        # 添加资源快照
-        resource_snap = extract_resource_snapshot(block)
-        if resource_snap:
-            resource_line = "📊 当前资源："
-            if "sun" in resource_snap:
-                resource_line += f"☀️{resource_snap['sun']}  "
-            if "water" in resource_snap:
-                resource_line += f"💧{resource_snap['water']}  "
-            if "fruit" in resource_snap:
-                resource_line += f"🍅{resource_snap['fruit']}  "
-            report_lines.append(resource_line.strip())
-        
-        # 添加各步骤执行结果
-        for step in STEP_ORDER:
-            if step not in step_buckets:
-                continue
-                
-            # 去重并清理日志行
-            unique_lines = []
-            seen = set()
-            
-            for line in step_buckets[step]:
-                # 跳过分隔线
-                if set(line.strip()) == set("="):
+def render_report(all_lines):
+    blocks, cur = [], []
+    for ln in all_lines:
+        if ln.strip().startswith("👤 用户"):
+            if cur: blocks.append(cur)
+            cur = [ln.strip()]
+        elif ln is not None:
+            cur.append(ln.rstrip())
+    if cur: blocks.append(cur)
+    out = []
+    for b in blocks:
+        if not b: continue
+        header = b[0].strip()
+        out.append("━━━━━━━━━━━━━━━━━━━━━━")
+        out.append(header)
+        bucket = defaultdict(list)
+        for ln in b[1:]:
+            if not ln.strip(): continue
+            bucket[_step_key(ln)].append(ln)
+        snap = _pull_resource_snapshot(b)
+        if snap:
+            res_line = "📊 当前资源："
+            if "sun" in snap:   res_line += f"☀️{snap['sun']}  "
+            if "water" in snap: res_line += f"💧{snap['water']}  "
+            if "fruit" in snap: res_line += f"🍅{snap['fruit']}  "
+            out.append(res_line.strip())
+        for step in STEP_ORDER + ["信息"]:
+            if step not in bucket: continue
+            lines = bucket[step]
+            cleaned, seen = [], set()
+            for ln in lines:
+                if set(ln.strip()) in (set("="),):
                     continue
-                    
-                normalized = re.sub(r"\s+", " ", line).strip()
-                if normalized not in seen:
-                    seen.add(normalized)
-                    unique_lines.append(normalized)
-            
-            # 选择要显示的行（循环浇水显示所有，其他显示最后一条）
-            display_lines = unique_lines if step == STEP_CONFIG["watering"]["name"] else unique_lines[-1:]
-            
-            # 添加到报告
-            for line in display_lines:
-                status = extract_status(line)
-                emoji = next(v["emoji"] for k, v in STEP_CONFIG.items() if v["name"] == step)
-                # 移除前缀
-                clean_line = re.sub(
-                    rf"^[{''.join(v['emoji'] for v in STEP_CONFIG.values())}]\s*{re.escape(step)}[:：]?\s*",
-                    "", line
-                )
-                report_lines.append(f"{emoji} {step} {status}  {short_text(clean_line)}")
-        
-        # 添加小结
-        success_count = sum(STATUS_ICONS["success"] in line for line in block)
-        warning_count = sum(STATUS_ICONS["warning"] in line for line in block)
-        error_count = sum(STATUS_ICONS["error"] in line for line in block)
-        report_lines.append(f"🧾 小结：成功 {success_count} · 预警 {warning_count} · 失败 {error_count}")
-    
-    # 添加结束分隔线
-    report_lines.append("━━━━━━━━━━━━━━━━━━━━━━━━")
-    
-    return "\n".join(report_lines)
+                # 关键修复：循环浇水日志不做去重（保留所有记录）
+                if step == "循环浇水":
+                    cleaned.append(ln)
+                else:
+                    norm = re.sub(r"账号\d+：", "", re.sub(r"\s+", " ", ln)).strip()
+                    if norm not in seen:
+                        seen.add(norm)
+                        cleaned.append(ln)
+            # 循环浇水保留所有记录
+            if step == "循环浇水":
+                picked = cleaned
+            else:
+                picked = cleaned[-1:] if cleaned else []
+            for pln in picked:
+                status = _pick_status(pln)
+                icon = STEP_EMOJI.get(step, "•")
+                body = re.sub(r"^[🔑🌱📅🔍🌾🔄]+\s*" + re.escape(step) + r"[:：]?\s*", "", pln)
+                body = re.sub(r"^[✅❌⚠️ℹ️]+\s*", "", body)
+                out.append(f"{icon} {step} {status}  {_short(body)}")
+        succ = sum("✅" in ln for ln in b)
+        fail = sum("❌" in ln for ln in b)
+        warn = sum("⚠️" in ln for ln in b)
+        out.append(f"🧾 小结：成功 {succ} · 预警 {warn} · 失败 {fail}")
+    out.append("━━━━━━━━━━━━━━━━━━━━━━")
+    return "\n".join(out)
 
-def random_sleep(min_seconds: float = None, max_seconds: float = None) -> None:
-    """随机等待"""
-    min_s = min_seconds or BASE_WAIT_RANGE[0]
-    max_s = max_seconds or BASE_WAIT_RANGE[1]
-    time.sleep(random.uniform(min_s, max_s))
 
-def create_headers(auth_token: str = None, content_type: str = "application/json") -> Dict[str, str]:
-    """创建请求头"""
-    headers = {
-        "User-Agent": USER_AGENT,
-        "Content-Type": content_type
-    }
-    if auth_token:
-        headers["Authorization"] = auth_token
-    return headers
-
-# ==================== 核心功能函数 ====================
-def login_account(wid: str, user_logs: List[str]) -> Optional[Dict[str, Any]]:
-    """
-    登录账号
-    :param wid: 用户ID
-    :param user_logs: 日志列表
-    :return: 登录数据字典或None
-    """
-    step = STEP_CONFIG["login"]["name"]
-    emoji = STEP_CONFIG["login"]["emoji"]
-    
+def login(wid, phone, user_logs):
+    step = "登录"
+    # 校验手机号是否存在
+    if not phone:
+        msg = "未配置手机号，登录失败 🔒"
+        print(msg)
+        user_logs.append(f"🔑 {step}: {msg}")
+        return None
     try:
-        url = f"{API_BASE_URL}/login"
-        payload = {"wid": wid}
-        headers = create_headers()
-        
-        response = requests.post(
-            url,
-            data=json.dumps(payload),
-            headers=headers,
-            timeout=REQUEST_TIMEOUT
-        )
+        url = "https://api.zhumanito.cn/api/login"
+        # 新增手机号参数 wm_phone
+        payload = {"wid": wid, "wm_phone": phone}
+        headers = {'User-Agent': user_agent, 'Content-Type': "application/json"}
+        response = requests.post(url, data=json.dumps(payload), headers=headers)
         response.raise_for_status()
-        
-        result = response.json()
-        
-        # 检查登录结果
-        if all(key in result.get("data", {}) for key in ["token", "user", "land"]):
-            msg = "登录成功 ✅"
-            user_logs.append(f"{emoji} {step}: {msg}")
-            random_sleep()
+        dljson = response.json()
+        # 响应格式新增 code 字段校验
+        if dljson.get("code") == 200 and 'data' in dljson and 'token' in dljson['data'] and 'user' in dljson['data'] and 'land' in dljson['data']:
+            msg = f"登录成功（手机号：{phone}）✅"
+            print(msg)
+            user_logs.append(f"🔑 {step}: {msg}")
+            time.sleep(random.uniform(4, 5))
             return {
-                "token": result["data"]["token"],
-                "user_data": result["data"]["user"],
-                "land_data": result["data"]["land"]
+                "token": dljson['data']['token'],
+                "user_data": dljson['data']['user'],
+                "land_data": dljson['data']['land']
             }
         else:
-            msg = f"登录失败，返回数据不完整: {json.dumps(result, ensure_ascii=False)} ❌"
-            user_logs.append(f"{emoji} {step}: {msg}")
+            msg = f"登录失败，返回数据: {dljson} ❌"
+            print(msg)
+            user_logs.append(f"🔑 {step}: {msg}")
             return None
-            
-    except requests.exceptions.RequestException as e:
-        msg = f"登录请求出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
-        return None
     except Exception as e:
-        msg = f"登录处理出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        msg = f"登录出错（手机号：{phone}）: {str(e)} ❌"
+        print(msg)
+        user_logs.append(f"🔑 {step}: {msg}")
         return None
 
-def collect_seeds(auth_token: str, user_logs: List[str]) -> None:
-    """领取种子/引导任务"""
-    step = STEP_CONFIG["get_seeds"]["name"]
-    emoji = STEP_CONFIG["get_seeds"]["emoji"]
-    
-    if not auth_token:
+def get_seeds(authorization, user_logs):
+    step = "领取种子"
+    if not authorization:
         msg = "未获取到授权，无法领取种子 🔒"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        print(msg)
+        user_logs.append(f"🌱 {step}: {msg}")
         return
-    
     try:
-        url = f"{API_BASE_URL}/guide"
-        headers = create_headers(auth_token)
-        
-        # 执行引导步骤1和2
-        for status in (1, 2):
-            payload = {"status": status}
-            response = requests.post(
-                url,
-                data=json.dumps(payload),
-                headers=headers,
-                timeout=REQUEST_TIMEOUT
-            )
+        url = "https://api.zhumanito.cn/api/guide"
+        headers = {'User-Agent': user_agent, 'Content-Type': "application/json", 'authorization': authorization}
+        for st in (1, 2):
+            payload = {"status": st}
+            response = requests.post(url, data=json.dumps(payload), headers=headers)
             response.raise_for_status()
-        
-        msg = "领取/引导完成 ✅"
-        user_logs.append(f"{emoji} {step}: {msg}")
-        random_sleep()
-        
-    except requests.exceptions.RequestException as e:
-        msg = f"领取种子请求出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        user_logs.append(f"🌱 {step}: 领取/引导完成 ✅")
+        time.sleep(random.uniform(4, 5))
     except Exception as e:
-        msg = f"领取种子处理出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        msg = f"领取种子出错: {str(e)} ❌"
+        print(msg)
+        user_logs.append(f"🌱 {step}: {msg}")
 
-def do_check_in(auth_token: str, user_logs: List[str]) -> None:
-    """签到"""
-    step = STEP_CONFIG["check_in"]["name"]
-    emoji = STEP_CONFIG["check_in"]["emoji"]
-    
-    if not auth_token:
+def check_in(authorization, user_logs):
+    step = "签到"
+    if not authorization:
         msg = "未获取到授权，无法签到 🔒"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        print(msg)
+        user_logs.append(f"📅 {step}: {msg}")
         return
-    
     try:
-        url = f"{API_BASE_URL}/task/complete"
-        headers = create_headers(auth_token, "application/x-www-form-urlencoded")
-        
-        response = requests.post(
-            url,
-            headers=headers,
-            timeout=REQUEST_TIMEOUT
-        )
-        result = response.json()
-        
-        # 处理签到结果
-        msg = result.get("msg", "未知错误")
-        if msg == "成功":
-            status_msg = "签到成功 ✅"
-        elif msg == "不可重复完成":
-            status_msg = "今日已签到，无需重复操作 ✅"
+        url = "https://api.zhumanito.cn/api/task/complete"
+        headers = {'User-Agent': user_agent, 'Content-Type': "application/x-www-form-urlencoded", 'authorization': authorization}
+        response = requests.post(url, headers=headers)
+        response_data = response.json()
+        if response_data.get("msg") == "成功":
+            msg = "签到成功 ✅"
+            print(f"签到结果: {msg}")
+            user_logs.append(f"📅 {step}: {msg}")
+        elif response_data.get("msg") == "不可重复完成":
+            msg = "今日已签到，无需重复操作 ✅"
+            print(f"签到结果: {msg}")
+            user_logs.append(f"📅 {step}: {msg}")
         else:
-            status_msg = f"失败，原因: {msg} ❌"
-        
-        user_logs.append(f"{emoji} {step}: {status_msg}")
-        random_sleep()
-        
-    except requests.exceptions.RequestException as e:
-        msg = f"签到请求出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
+            msg = f"失败，原因: {response_data.get('msg', '未知错误')} ❌"
+            print(f"签到结果: {msg}")
+            user_logs.append(f"📅 {step}: {msg}")
+        time.sleep(random.uniform(4, 5))
     except Exception as e:
-        msg = f"签到处理出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        msg = f"签到出错: {str(e)} ❌"
+        print(msg)
+        user_logs.append(f"📅 {step}: {msg}")
 
-def browse_tasks(auth_token: str, wid: str, user_logs: List[str]) -> None:
-    """浏览任务"""
-    step = STEP_CONFIG["explore"]["name"]
-    emoji = STEP_CONFIG["explore"]["emoji"]
-    
-    if not auth_token:
+def explore(authorization, wid, user_logs):
+    step = "浏览任务"
+    if not authorization:
         msg = "未获取到授权，无法执行浏览任务 🔒"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        print(msg)
+        user_logs.append(f"🔍 {step}: {msg}")
         return
-    
     max_retry = 3
     retry_count = 0
-    
     while retry_count < max_retry:
         try:
             url = f"https://api.zhumanito.cn/?wid={wid}"
             headers = {
                 'Host': 'api.zhumanito.cn',
-                'User-Agent': USER_AGENT,
-                'Authorization': auth_token,
+                'User-Agent': user_agent,
+                'authorization': authorization,
                 'sec-ch-ua': '"Chromium";v="142", "Android WebView";v="142", "Not_A Brand";v="99"',
                 'sec-ch-ua-mobile': '?0',
                 'sec-ch-ua-platform': '"Android"',
@@ -366,149 +237,112 @@ def browse_tasks(auth_token: str, wid: str, user_logs: List[str]) -> None:
                 'accept-language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
                 'priority': 'u=0, i'
             }
-            
-            # 禁用重定向，手动处理302
-            response = requests.get(
-                url,
-                headers=headers,
-                allow_redirects=False,
-                timeout=REQUEST_TIMEOUT,
-                verify=True
-            )
-            
+            response = requests.get(url, headers=headers, allow_redirects=False, timeout=10, verify=True)
             if response.status_code == 302:
-                msg = "浏览任务完成 ✅"
-                user_logs.append(f"{emoji} {step}: {msg}")
-                random_sleep()
+                msg = "浏览任务完成✅"
+                print(f"浏览任务：{msg}")
+                user_logs.append(f"🔍 {step}: {msg}")
+                time.sleep(random.uniform(4, 5))
                 break
             elif response.status_code == 429:
                 retry_after = int(response.headers.get("Retry-After", "1"))
                 retry_count += 1
                 if retry_count < max_retry:
                     msg = f"浏览请求限速，等待{retry_after}秒后重试（第{retry_count}/{max_retry}次）"
-                    user_logs.append(f"{emoji} {step}: {msg}")
+                    print(f"浏览任务：{msg}")
                     time.sleep(retry_after)
                 else:
                     msg = f"浏览请求多次限速，放弃重试 ❌"
-                    user_logs.append(f"{emoji} {step}: {msg}")
+                    print(f"浏览任务：{msg}")
+                    user_logs.append(f"🔍 {step}: {msg}")
             else:
                 msg = f"浏览失败，状态码: {response.status_code} ❌"
-                user_logs.append(f"{emoji} {step}: {msg}")
+                print(f"浏览任务：{msg}")
+                user_logs.append(f"🔍 {step}: {msg}")
                 break
-                
         except requests.exceptions.RequestException as e:
-            msg = f"浏览任务请求出错: {str(e)} ❌"
-            user_logs.append(f"{emoji} {step}: {msg}")
-            break
-        except Exception as e:
-            msg = f"浏览任务处理出错: {str(e)} ❌"
-            user_logs.append(f"{emoji} {step}: {msg}")
+            msg = f"浏览任务出错: {str(e)} ❌"
+            print(msg)
+            user_logs.append(f"🔍 {step}: {msg}")
             break
 
-def harvest_crops(auth_token: str, user_logs: List[str], account: Dict[str, Any]) -> bool:
-    """收获作物"""
-    step = STEP_CONFIG["harvest"]["name"]
-    emoji = STEP_CONFIG["harvest"]["emoji"]
-    
+def harvest(authorization, user_logs, account):
+    step = "收获作物"
     try:
-        url = f"{API_BASE_URL}/harvest"
-        headers = create_headers(auth_token, "application/x-www-form-urlencoded;charset=utf-8")
-        
-        # 记录收获前的番茄数量
+        url = "https://api.zhumanito.cn/api/harvest"
+        headers = {
+            'User-Agent': user_agent,
+            'Content-Type': "application/x-www-form-urlencoded;charset=utf-8",
+            'authorization': authorization
+        }
         before_fruit = int(account["user_data"].get("fruit_num", 0))
-        
-        response = requests.post(
-            url,
-            headers=headers,
-            data=b"",
-            timeout=REQUEST_TIMEOUT
-        )
+        response = requests.post(url, headers=headers, data=b"", timeout=15)
         response.raise_for_status()
-        result = response.json()
-        
-        if result.get("code") == 200:
-            # 更新账号数据
-            account["user_data"] = result["data"]["user"]
-            account["land_data"] = result["data"]["land"]
-            
-            # 计算收获的番茄数量
+        res_json = response.json()
+        if res_json.get("code") == 200:
+            account["user_data"] = res_json["data"]["user"]
+            account["land_data"] = res_json["data"]["land"]
             after_fruit = int(account["user_data"].get("fruit_num", 0))
             total_after = int(account["user_data"].get("total_fruit_num", after_fruit))
             delta = max(0, after_fruit - before_fruit)
-            
-            msg = f"收获成功！🍅+{delta} → 现有 {after_fruit}（累计 {total_after}）✅"
-            user_logs.append(f"{emoji} {step}: {msg}")
-            
-            # 记录资源快照
-            snap_msg = f"📊 收获后资源：☀️{account['user_data'].get('sun_num',0)}  💧{account['user_data'].get('water_num',0)}  🍅{after_fruit}"
-            user_logs.append(snap_msg)
-            
-            random_sleep()
+            msg = f"收获成功！🍅+{delta} → 现有 {after_fruit}（累计 {total_after}）"
+            print(msg)
+            user_logs.append(f"🌾 {step}: {msg}")
+            snap_line = f"📊 收获后资源：☀️{account['user_data'].get('sun_num',0)}  💧{account['user_data'].get('water_num',0)}  🍅{after_fruit}"
+            print(snap_line)
+            user_logs.append(snap_line)
+            time.sleep(random.uniform(4, 5))
             return True
         else:
-            msg = f"收获失败: {result.get('msg', '未知信息')} ⚠️"
-            user_logs.append(f"{emoji} {step}: {msg}")
+            msg = f"收获失败: {res_json.get('msg', '未知信息')} ⚠️"
+            print(msg)
+            user_logs.append(f"🌾 {step}: {msg}")
             return False
-            
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         msg = f"收获请求出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
-        return False
-    except Exception as e:
-        msg = f"收获处理出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        print(msg)
+        user_logs.append(f"🌾 {step}: {msg}")
         return False
 
-def plant_seeds(auth_token: str, user_logs: List[str], account: Dict[str, Any]) -> bool:
-    """播种"""
-    step = STEP_CONFIG["plant_seed"]["name"]
-    emoji = STEP_CONFIG["plant_seed"]["emoji"]
-    
+def plant_seed(authorization, user_logs, account):
+    step = "播种"
     try:
-        url = f"{API_BASE_URL}/seed"
-        headers = create_headers(auth_token, "application/x-www-form-urlencoded;charset=utf-8")
-        
-        response = requests.post(
-            url,
-            headers=headers,
-            data=b"",
-            timeout=REQUEST_TIMEOUT
-        )
+        url = "https://api.zhumanito.cn/api/seed"
+        headers = {
+            'User-Agent': user_agent,
+            'Content-Type': "application/x-www-form-urlencoded;charset=utf-8",
+            'authorization': authorization
+        }
+        response = requests.post(url, headers=headers, data=b"", timeout=15)
         response.raise_for_status()
-        result = response.json()
-        
-        if result.get("code") == 200:
+        res_json = response.json()
+        if res_json.get("code") == 200:
             msg = "播种成功！✅"
-            user_logs.append(f"{emoji} {step}: {msg}")
-            
-            # 更新账号数据
-            account["user_data"] = result["data"]["user"]
-            account["land_data"] = result["data"]["land"]
-            
-            random_sleep()
+            print(msg)
+            user_logs.append(f"🌱 {step}: {msg}")
+            account["user_data"] = res_json["data"]["user"]
+            account["land_data"] = res_json["data"]["land"]
+            time.sleep(random.uniform(4, 5))
             return True
         else:
-            msg = f"播种失败: {result.get('msg', '未知信息')} ⚠️"
-            user_logs.append(f"{emoji} {step}: {msg}")
+            msg = f"播种失败: {res_json.get('msg', '未知信息')} ⚠️"
+            print(msg)
+            user_logs.append(f"🌱 {step}: {msg}")
             return False
-            
-    except requests.exceptions.RequestException as e:
-        msg = f"播种请求出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
-        return False
     except Exception as e:
-        msg = f"播种处理出错: {str(e)} ❌"
-        user_logs.append(f"{emoji} {step}: {msg}")
+        msg = f"播种请求出错: {str(e)} ❌"
+        print(msg)
+        user_logs.append(f"🌱 {step}: {msg}")
         return False
 
-def water_once_request(headers: Dict[str, str], account_idx: int) -> Optional[Dict[str, Any]]:
-    """单次浇水请求（带重试）"""
+def water_once(headers, account_idx):
+    """单次浇水（带限速重试）"""
+    max_retry = 3
     retry_count = 0
-    
-    while retry_count < WATER_MAX_RETRY:
+    while retry_count < max_retry:
         try:
             response = requests.post(
-                f"{API_BASE_URL}/water",
+                "https://api.zhumanito.cn/api/water",
                 headers=headers,
                 data=b"",
                 allow_redirects=False,
@@ -520,206 +354,152 @@ def water_once_request(headers: Dict[str, str], account_idx: int) -> Optional[Di
             elif response.status_code == 429:
                 retry_after = int(response.headers.get("Retry-After", "1"))
                 retry_count += 1
-                if retry_count < WATER_MAX_RETRY:
-                    print(f"账号{account_idx}：浇水请求限速，等待{retry_after}秒后重试（第{retry_count}/{WATER_MAX_RETRY}次）")
+                if retry_count < max_retry:
+                    print(f"账号{account_idx}：浇水请求限速，等待{retry_after}秒后重试（第{retry_count}/{max_retry}次）")
                     time.sleep(retry_after)
                 else:
-                    raise Exception(f"浇水请求多次限速（{WATER_MAX_RETRY}次），放弃重试")
+                    raise Exception(f"浇水请求多次限速（{max_retry}次），放弃重试")
             else:
                 raise Exception(f"响应状态码异常: {response.status_code}，内容: {response.text}")
-                
         except json.JSONDecodeError:
             raise Exception(f"返回非JSON数据: {response.text}")
         except Exception as e:
-            if retry_count >= WATER_MAX_RETRY - 1:
+            if retry_count >= max_retry - 1:
                 raise e
             retry_count += 1
             time.sleep(1)
-    
     return None
 
-def loop_watering_process(headers: Dict[str, str], account_idx: int, 
-                         account: Dict[str, Any], user_logs: List[str]) -> None:
-    """循环浇水"""
-    step = STEP_CONFIG["watering"]["name"]
-    emoji = STEP_CONFIG["watering"]["emoji"]
+def loop_watering(headers, account_idx, account, user_logs):
+    step = "循环浇水"
+    user_logs.append(f"🔄 {step}：进入循环浇水（需💧≥20且☀️≥20）")
+    print(f"\n🔄 账号{account_idx}：进入循环浇水（需💧≥20且☀️≥20）")
     
-    user_logs.append(f"{emoji} {step}：进入循环浇水（需💧≥20且☀️≥20）")
-    print(f"\n{emoji} 账号{account_idx}：进入循环浇水（需💧≥20且☀️≥20）")
-    
-    # 准备浇水请求头
     water_headers = headers.copy()
     water_headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8"
     
     while True:
-        # 获取当前资源
         water = account["user_data"].get("water_num", 0)
         sun = account["user_data"].get("sun_num", 0)
         
-        # 检查资源是否满足
         if water >= 20 and sun >= 20:
-            log_msg = f"📌 账号{account_idx}：资源满足（💧{water}，☀️{sun}），浇水..."
+            log_msg = f"🔄 {step}：📌 账号{account_idx}：资源满足（💧{water}，☀️{sun}），浇水..."
             print(log_msg)
             user_logs.append(log_msg)
             
             try:
-                # 执行浇水
-                result = water_once_request(water_headers, account_idx)
+                res = water_once(water_headers, account_idx)
                 
-                if result and result.get("code") == 200:
-                    # 更新账号数据
-                    account["user_data"] = result["data"]["user"]
+                if res.get("code") == 200:
+                    # 浇水成功，更新用户数据
+                    account["user_data"] = res["data"]["user"]
+                    land = res["data"].get("land", [])
                     
-                    # 记录成功信息
-                    success_msg = f"✅ 账号{account_idx}：浇水成功！"
-                    status_msg = f"📊 剩余：💧{account['user_data']['water_num']}，☀️{account['user_data']['sun_num']}"
-                    
+                    success_msg = f"🔄 {step}：✅ 账号{account_idx}：浇水成功！"
+                    status_msg = f"🔄 {step}：📊 剩余：💧{account['user_data']['water_num']}，☀️{account['user_data']['sun_num']}"
                     print("="*35)
                     print(success_msg)
                     print(status_msg)
+                    # 关键修改：每条浇水成功日志都保留（不合并、不删除）
                     user_logs.append(success_msg)
                     user_logs.append(status_msg)
                     
-                    # 记录土地状态
-                    land = result["data"].get("land", [])
                     if land:
-                        land_msg = f"🌱 土地：共{len(land)}块，阶段{land[0]['seed_stage']} 🌱"
+                        land_msg = f"🔄 {step}：🌱 土地：共{len(land)}块，阶段{land[0]['seed_stage']} 🌱"
                         print(land_msg)
                         user_logs.append(land_msg)
                     print("="*35)
                     
-                    random_sleep()
+                    time.sleep(random.uniform(4, 5))
                 else:
-                    # 浇水失败
-                    fail_msg = f"❌ 账号{account_idx}：浇水失败：{result.get('msg', '未知错误') if result else '无响应'}"
+                    # 浇水失败（如达上限、其他错误）
+                    fail_msg = f"🔄 {step}：❌ 账号{account_idx}：浇水失败：{res.get('msg', '未知错误')}"
                     print(fail_msg)
-                    user_logs.append(f"{emoji} {step}：{fail_msg}")
+                    user_logs.append(fail_msg)
                     break
-                    
+                
             except Exception as e:
-                error_msg = f"⚠️ 账号{account_idx}：浇水请求异常：{str(e)} ❌"
+                error_msg = f"🔄 {step}：⚠️ 账号{account_idx}：浇水请求异常：{str(e)} ❌"
                 print(error_msg)
-                user_logs.append(f"{emoji} {step}：{error_msg}")
+                user_logs.append(error_msg)
                 break
         else:
-            # 资源不足，停止浇水
-            end_msg = f"🔚 账号{account_idx}：资源不足（💧{water}，☀️{sun}），停止浇水 ⏹️"
+            end_msg = f"🔄 {step}：🔚 账号{account_idx}：资源不足（💧{water}，☀️{sun}），停止浇水 ⏹️"
             print(end_msg)
-            user_logs.append(f"{STATUS_ICONS['info']} {step}：{end_msg}")
-            
-            # 记录最终资源
+            user_logs.append(end_msg)
             fruit = account['user_data'].get('fruit_num', 0)
             final_snap = f"📊 最终资源：☀️{sun}  💧{water}  🍅{fruit}"
             print(final_snap)
             user_logs.append(final_snap)
             break
 
-def process_single_user(wid: str, user_index: int) -> List[str]:
-    """处理单个用户"""
-    user_logs = [f"👤 用户{user_index}: {wid}"]
-    print(f"\n===== 开始处理用户 {user_index} (wid: {wid}) =====")
-    
-    # 登录
-    login_data = login_account(wid, user_logs)
-    if not login_data:
+def process_user(wid, phone, user_index):
+    user_logs = [f"👤 用户{user_index}: wid={wid} | 手机号={phone}"]
+    print(f"\n===== 开始处理用户 {user_index} (wid: {wid}, 手机号: {phone}) =====")
+    # 登录时传入 wid 和手机号
+    login_data = login(wid, phone, user_logs)
+    if login_data:
+        auth_token = login_data["token"]
+        headers = {'User-Agent': user_agent, 'authorization': auth_token}
+        account = {"user_data": login_data["user_data"], "land_data": login_data["land_data"]}
+        fruit = account['user_data'].get('fruit_num', 0)
+        print(f"📊 当前番茄数量：{fruit}")
+        user_logs.append(f"📊 当前番茄数量：{fruit}")
+        if account["user_data"].get("new_status", 2) != 2:
+            get_seeds(auth_token, user_logs)
+        check_in(auth_token, user_logs)
+        explore(auth_token, wid, user_logs)
+        current_stage = 0
+        if account["land_data"] and len(account["land_data"]) > 0:
+            current_stage = account["land_data"][0].get("seed_stage", 0)
+        print(f"\n🧠 账号{user_index}：智能判断... 当前土地状态: {current_stage}")
+        user_logs.append(f"ℹ️ 土地状态: {current_stage}")
+        if current_stage == 5:
+            print("判断：作物已成熟。")
+            user_logs.append("🧠 判断：作物已成熟。")
+            print(f">> 账号{user_index}：执行 [收获]...")
+            harvest_success = harvest(auth_token, user_logs, account)
+            if harvest_success:
+                print(f">> 账号{user_index}：执行 [播种]...")
+                plant_seed(auth_token, user_logs, account)
+        elif current_stage == 0:
+            print("判断：土地为空。")
+            user_logs.append("🧠 判断：土地为空。")
+            print(f">> 账号{user_index}：执行 [播种]...")
+            plant_seed(auth_token, user_logs, account)
+        else:
+            print("判断：作物生长中... 无需收获或播种。")
+            user_logs.append("🧠 判断：作物生长中。")
+        loop_watering(headers, user_index, account, user_logs)
+    else:
         msg = "获取授权失败，无法执行后续操作 🔒"
         print(msg)
-        user_logs.append(f"{STATUS_ICONS['warning']} {msg}")
-        print(f"===== 完成处理用户 {user_index} =====\n")
-        time.sleep(ACCOUNT_INTERVAL)
-        return user_logs
-    
-    # 登录成功，继续处理
-    auth_token = login_data["token"]
-    headers = create_headers(auth_token)
-    account = {
-        "user_data": login_data["user_data"],
-        "land_data": login_data["land_data"]
-    }
-    
-    # 记录当前番茄数量
-    fruit = account['user_data'].get('fruit_num', 0)
-    print(f"📊 当前番茄数量：{fruit}")
-    user_logs.append(f"📊 当前番茄数量：{fruit}")
-    
-    # 领取种子（如果是新用户）
-    if account["user_data"].get("new_status", 2) != 2:
-        collect_seeds(auth_token, user_logs)
-    
-    # 执行签到
-    do_check_in(auth_token, user_logs)
-    
-    # 执行浏览任务
-    browse_tasks(auth_token, wid, user_logs)
-    
-    # 智能判断土地状态
-    current_stage = 0
-    if account["land_data"] and len(account["land_data"]) > 0:
-        current_stage = account["land_data"][0].get("seed_stage", 0)
-    
-    print(f"\n🧠 账号{user_index}：智能判断... 当前土地状态: {current_stage}")
-    user_logs.append(f"{STATUS_ICONS['info']} 土地状态: {current_stage}")
-    
-    if current_stage == 5:
-        print("判断：作物已成熟。")
-        user_logs.append("🧠 判断：作物已成熟。")
-        print(f">> 账号{user_index}：执行 [收获]...")
-        harvest_success = harvest_crops(auth_token, user_logs, account)
-        if harvest_success:
-            print(f">> 账号{user_index}：执行 [播种]...")
-            plant_seeds(auth_token, user_logs, account)
-    elif current_stage == 0:
-        print("判断：土地为空。")
-        user_logs.append("🧠 判断：土地为空。")
-        print(f">> 账号{user_index}：执行 [播种]...")
-        plant_seeds(auth_token, user_logs, account)
-    else:
-        print("判断：作物生长中... 无需收获或播种。")
-        user_logs.append("🧠 判断：作物生长中。")
-    
-    # 循环浇水
-    loop_watering_process(headers, user_index, account, user_logs)
-    
+        user_logs.append(f"⚠️ {msg}")
     print(f"===== 完成处理用户 {user_index} =====\n")
-    time.sleep(ACCOUNT_INTERVAL)
+    time.sleep(3)
     return user_logs
 
-# ==================== 主程序 ====================
-def main():
-    """主函数"""
-    # 获取用户列表
-    users_str = os.getenv(ENV_KEY, "")
-    users = [user.strip() for user in users_str.split("&") if user.strip()]
-    
-    if not users:
-        error_msg = f"未从环境变量{ENV_KEY}中获取到任何用户信息！ 🚫"
-        print(error_msg)
-        send("统一茄皇", error_msg)
-        return
-    
-    print(f"共检测到 {len(users)} 个用户，开始依次处理... 👥")
-    
-    # 处理所有用户
-    all_logs = []
-    for index, user_wid in enumerate(users, 1):
-        try:
-            user_logs = process_single_user(user_wid, index)
-            all_logs.extend(user_logs)
-            all_logs.append("")
-        except Exception as e:
-            error_msg = f"用户 {index} 处理过程中发生未捕获错误: {str(e)} ❌"
-            print(error_msg)
-            all_logs.append(f"{STATUS_ICONS['error']} {error_msg}")
-            all_logs.append("")
-    
-    # 生成并发送报告
-    report = render_report(all_logs)
-    print("\n" + "="*50)
-    print("执行报告：")
-    print(report)
-    print("="*50)
-    
-    send("统一茄皇", report)
-
 if __name__ == "__main__":
-    main()
+    if not parsed_users or len(parsed_users) == 0:
+        print("未从环境变量TYQH中获取到任何用户信息！ 🚫")
+        send("统一茄皇", "未从环境变量TYQH中获取到任何用户信息！ 🚫")
+    else:
+        print(f"共检测到 {len(parsed_users)} 个用户，开始依次处理... 👥")
+        all_logs = []
+        for i, (wid, phone) in enumerate(parsed_users, 1):
+            try:
+                user_logs = process_user(wid, phone, i)
+                all_logs.extend(user_logs)
+                all_logs.append("")
+            except Exception as e:
+                error_msg = f"用户 {i} 处理过程中发生未捕获错误: {str(e)} ❌"
+                print(error_msg)
+                all_logs.append(f"❌ {error_msg}")
+                all_logs.append("")
+        # 推送完整报告（包含所有浇水成功记录）
+        report = render_report(all_logs)
+        print("\n" + "="*50)
+        print("最终推送通知内容：")
+        print(report)
+        print("="*50)
+        send("统一茄皇", report)
