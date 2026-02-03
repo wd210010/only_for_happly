@@ -1,4 +1,3 @@
-
 # cron: 11 6,9,12,15,18 * * *
 # const $ = new Env("顺丰速运");
 import hashlib
@@ -245,12 +244,14 @@ class RUN:
                     if response.get('success') == True:
                         goodsList = response["obj"][0]["goodsList"]
                         for goods in goodsList:
-                            exchangeTimesLimit = goods['exchangeTimesLimit']
+                            # 使用 get 方法，若不存在则默认为 0
+                            exchangeTimesLimit = goods.get('exchangeTimesLimit', 0) 
                             if exchangeTimesLimit >= 1:
-                                self.goodsNo = goods['goodsNo']
-                                print(f'领取生活权益：当前选择券号：{self.goodsNo}')
-                                self.get_coupom()
-                                break
+                                self.goodsNo = goods.get('goodsNo')
+                                if self.goodsNo:
+                                    print(f'领取生活权益：当前选择券号：{self.goodsNo}')
+                                    self.get_coupom()
+                                    break
                     else:
                         print(f'>领券失败！原因：{response.get("errorMessage")}')
                 else:
@@ -2479,7 +2480,7 @@ if __name__ == '__main__':
     tokens = token.split('\n')
     local_version = '2024.06.02'
     all_logs = []
-    print("配置环境变量 sfsyUrl 一行一个号码的url 兼容转码Url")
+    print("配置环境变量 sfsyUrl2026 一行一个号码的url 兼容转码Url")
     if len(tokens) > 0:
         print(f"\n>>>>>>>>>>共获取到{len(tokens)}个账号<<<<<<<<<<")
         for index, infos in enumerate(tokens):
